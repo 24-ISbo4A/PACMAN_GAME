@@ -40,7 +40,6 @@ namespace PACMAN_GAME
             if (e.KeyCode == Keys.Up)
             {
                 group = true;
-                Console.WriteLine("Тестовая строченька");
             }
 
             if (e.KeyCode == Keys.Down)
@@ -85,7 +84,7 @@ namespace PACMAN_GAME
 
         }
 
-        // sun1zu: ����������� ������ � ���������� �������� �������, ��� �� ��� � ��������
+        
         private void MainGameTimer(object sender, EventArgs e)
         {
             txtScore.Text = "Score: " + score;
@@ -147,25 +146,24 @@ namespace PACMAN_GAME
                     {
                         if (pacman.Bounds.IntersectsWith(x.Bounds))
                             {
-                            // ????????? ???? ?????
+                                // TODO
                         }
                     }
                     if (((string)x.Tag == "ghost"))
                         {
                         if (pacman.Bounds.IntersectsWith(x.Bounds))
                             {
-                            // ????????? ???? ????? 
+                                // TODO
                         }
                     }
                 }
             }
 
-            // ???????? ?????????? ???????? sun1zu: ��� �� � �������� ��� ����� �������, ��������� ���� ������� :P
 
             redGhost.Left += redGhostSpeed;
             if (redGhost.Bounds.IntersectsWith(default))    // sun1zu: refactored: (was: IntersectsWith())
             {
-
+                // TODO
             }    
 
 
@@ -173,7 +171,7 @@ namespace PACMAN_GAME
 
             if (score == 46)
             {
-                // ???-?? ?????
+                // TODO
             }
         }
 
