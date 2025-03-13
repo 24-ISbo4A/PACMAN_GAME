@@ -40,6 +40,7 @@ namespace PACMAN_GAME
             if (e.KeyCode == Keys.Up)
             {
                 group = true;
+                Console.WriteLine("РўРµСЃС‚РѕРІР°СЏ СЃС‚СЂРѕС‡РµРЅСЊРєР°");
             }
 
             if (e.KeyCode == Keys.Down)
@@ -84,7 +85,7 @@ namespace PACMAN_GAME
 
         }
 
-        // sun1zu: закомментил строки с картинками поворота пакмана, ибо их нет в ресурсах
+        // sun1zu: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         private void MainGameTimer(object sender, EventArgs e)
         {
             txtScore.Text = "Score: " + score;
@@ -159,7 +160,7 @@ namespace PACMAN_GAME
                 }
             }
 
-            // ???????? ?????????? ???????? sun1zu: это не я поставил эти знаки вопроса, кодировка сама слетела :P
+            // ???????? ?????????? ???????? sun1zu: пїЅпїЅпїЅ пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ :P
 
             redGhost.Left += redGhostSpeed;
             if (redGhost.Bounds.IntersectsWith(default))    // sun1zu: refactored: (was: IntersectsWith())
