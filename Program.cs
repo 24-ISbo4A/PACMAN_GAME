@@ -14,6 +14,7 @@ namespace PACMAN_GAME
             Application.Run(new Form1());
             
             // смешной комментарий хи хи ха ха 
+            // смешной коммент финал
         }
     }
 }
