@@ -12,9 +12,6 @@ namespace PACMAN_GAME
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
             Application.Run(new Form1());
-            
-            // смешной комментарий хи хи ха ха 
-            // смешной коммент финал
         }
     }
 }

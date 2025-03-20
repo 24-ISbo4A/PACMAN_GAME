@@ -1,121 +1,179 @@
 namespace PACMAN_GAME
 {
     public partial class Form1 : Form
+
+        
+        
     {
+
         bool group, godown, goleft, goright, isGameOver;
-        int score, playerSpeed, redGhostSpeed, yellowGhostSpeed, pinkGhostX, pinkGhostY;
+        int score, playerSpeed,  redGhostSpeed, yellowGhostSpeed, pinkGhostX, pinkGhostY;
         public Form1()
         {
             InitializeComponent();
             resetGame();
         }
 
-        private void label1_Click(object sender, EventArgs e) { }
+        private void label1_Click(object sender, EventArgs e)
+        {
 
-        private void Form1_Load(object sender, EventArgs e) { }
+        }
 
-        private void pictureBox5_Click(object sender, EventArgs e) { }
+        private void Form1_Load(object sender, EventArgs e)
+        {
 
-        private void pictureBox8_Click(object sender, EventArgs e) { }
+        }
+
+        private void pictureBox5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+
+        }
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Up) group = true;
-            if (e.KeyCode == Keys.Down) godown = true;
-            if (e.KeyCode == Keys.Left) goleft = true;
-            if (e.KeyCode == Keys.Right) goright = true;
+
+            if (e.KeyCode == Keys.Up)
+            {
+                group = true;
+                Console.WriteLine("Тестовая строченька");
+            }
+
+            if (e.KeyCode == Keys.Down)
+            {
+                godown = true;
+            }
+
+            if (e.KeyCode == Keys.Left)
+            {
+                goleft = true;
+            }
+
+            if (e.KeyCode == Keys.Right)
+            {
+                goright = true;
+            }
+
         }
 
         private void keyisup(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Up) group = false;
-            if (e.KeyCode == Keys.Down) godown = false;
-            if (e.KeyCode == Keys.Left) goleft = false;
-            if (e.KeyCode == Keys.Right) goright = false;
+
+            if (e.KeyCode == Keys.Up)
+            {
+                group = false;
+            }
+
+            if (e.KeyCode == Keys.Down)
+            {
+                godown = false;
+            }
+
+            if (e.KeyCode == Keys.Left)
+            {
+                goleft = false;
+            }
+
+            if (e.KeyCode == Keys.Right)
+            {
+                goright = false;
+            }
+
         }
 
+        // sun1zu: ����������� ������ � ���������� �������� �������, ��� �� ��� � ��������
         private void MainGameTimer(object sender, EventArgs e)
         {
             txtScore.Text = "Score: " + score;
-
-            // Сохраняем текущие координаты Пакмана
-            int newLeft = pacman.Left;
-            int newTop = pacman.Top;
-
-            if (goleft)
+            if (goleft == true)
             {
-                newLeft -= playerSpeed;
-                pacman.Image = Properties.Resources.left;
-
+                pacman.Left -= playerSpeed;
+                // pacman.Image = Properties.Resources.left;
             }
 
-            if (goright)
+            if (goright == true)
             {
-                newLeft += playerSpeed;
-                pacman.Image = Properties.Resources.right;
+                pacman.Left += playerSpeed;
+                // pacman.Image = Properties.Resources.right;
+            }
+            if (godown == true)
+            {
+                pacman.Top += playerSpeed;
+                // pacman.Image = Properties.Resources.down;
+            }
+            if (group == true)
+            {
+                pacman.Top -= playerSpeed;
+                // pacman.Image = Properties.Resources.Up;
             }
 
-            if (godown)
+
+
+            if (pacman.Left < -10)
             {
-                newTop += playerSpeed;
-                pacman.Image = Properties.Resources.down;
+                pacman.Left = 600;
+            }
+            if (pacman.Left > 600)
+            {
+                pacman.Left = -10;
             }
 
-            if (group)
+            if (pacman.Top < -10)
             {
-                newTop -= playerSpeed;
-                pacman.Image = Properties.Resources.up;
+                pacman.Top = 550;
+            }
+            if (pacman.Top > 550)
+            {
+                pacman.Top = 0;
             }
 
-            // Проверяем, не столкнется ли Пакман с какой-либо стеной после перемещения
-            bool canMove = true;
             foreach (Control x in this.Controls)
             {
-                if (x is PictureBox && (string)x.Tag == "wall")
+                if (x is PictureBox)
                 {
-                    // Создаем временный прямоугольник для проверки столкновений
-                    Rectangle newPacmanBounds = new Rectangle(newLeft, newTop, pacman.Width, pacman.Height);
-                    if (newPacmanBounds.IntersectsWith(x.Bounds))
+                    if ((string)x.Tag == "coin" && x.Visible == true)
                     {
-                        canMove = false;
-                        break;
+                        if (pacman.Bounds.IntersectsWith(x.Bounds))
+                        {
+                            score += 1;
+                            x.Visible = false;
+                        }
+                    }
+                    if ((string) x.Tag == "wall")
+                    {
+                        if (pacman.Bounds.IntersectsWith(x.Bounds))
+                            {
+                            // ????????? ???? ?????
+                        }
+                    }
+                    if (((string)x.Tag == "ghost"))
+                        {
+                        if (pacman.Bounds.IntersectsWith(x.Bounds))
+                            {
+                            // ????????? ???? ????? 
+                        }
                     }
                 }
             }
 
-            // Если движение возможно, обновляем позицию Пакмана
-            if (canMove)
-            {
-                pacman.Left = newLeft;
-                pacman.Top = newTop;
-            }
+            // ???????? ?????????? ???????? sun1zu: ��� �� � �������� ��� ����� �������, ��������� ���� ������� :P
 
-            // Проверка выхода за границы экрана
-            if (pacman.Left < -10) pacman.Left = 600;
-            if (pacman.Left > 600) pacman.Left = -10;
-            if (pacman.Top < -10) pacman.Top = 550;
-            if (pacman.Top > 550) pacman.Top = 0;
-
-            // Проверка сбора монет
-            foreach (Control x in this.Controls)
-            {
-                if (x is PictureBox && (string)x.Tag == "coin" && x.Visible)
-                {
-                    if (pacman.Bounds.IntersectsWith(x.Bounds))
-                    {
-                        score += 1;
-                        x.Visible = false;
-                    }
-                }
-            }
-
-            // Движение призраков
             redGhost.Left += redGhostSpeed;
+            if (redGhost.Bounds.IntersectsWith(default))    // sun1zu: refactored: (was: IntersectsWith())
+            {
+
+            }    
+
+
+
 
             if (score == 46)
             {
-                // Победа
-                gameOver("You Win!");
+                // ???-?? ?????
             }
         }
 
@@ -129,6 +187,7 @@ namespace PACMAN_GAME
             pinkGhostX = 5;
             pinkGhostY = 5;
             playerSpeed = 8;
+
 
             isGameOver = false;
 
@@ -144,7 +203,7 @@ namespace PACMAN_GAME
             pinkGhost.Left = 602;
             pinkGhost.Top = 78;
 
-            foreach (Control x in this.Controls)
+            foreach(Control x in this.Controls)
             {
                 if (x is PictureBox)
                 {
@@ -157,10 +216,8 @@ namespace PACMAN_GAME
 
         private void gameOver(string message)
         {
-            isGameOver = true;
-            gameTimer.Stop();
-            MessageBox.Show(message);
-            resetGame();
+
         }
+
     }
 }
