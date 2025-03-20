@@ -71,4 +71,10 @@
   <data name="up" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\up1.gif;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
   </data>
+  <data name="moneta" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\moneta1.png;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
+  </data>
+  <data name="red_ghost" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\red_ghost1.png;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
+  </data>
 </root>
