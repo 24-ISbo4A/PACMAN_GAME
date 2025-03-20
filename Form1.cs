@@ -42,10 +42,30 @@ namespace PACMAN_GAME
             int newLeft = pacman.Left;
             int newTop = pacman.Top;
 
-            if (goleft) newLeft -= playerSpeed;
-            if (goright) newLeft += playerSpeed;
-            if (godown) newTop += playerSpeed;
-            if (group) newTop -= playerSpeed;
+            if (goleft)
+            {
+                newLeft -= playerSpeed;
+                pacman.Image = Properties.Resources.left;
+
+            }
+
+            if (goright)
+            {
+                newLeft += playerSpeed;
+                pacman.Image = Properties.Resources.right;
+            }
+
+            if (godown)
+            {
+                newTop += playerSpeed;
+                pacman.Image = Properties.Resources.down;
+            }
+
+            if (group)
+            {
+                newTop -= playerSpeed;
+                pacman.Image = Properties.Resources.up;
+            }
 
             // Проверяем, не столкнется ли Пакман с какой-либо стеной после перемещения
             bool canMove = true;
