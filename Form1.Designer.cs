@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             txtScore = new System.Windows.Forms.Label();
             pictureBox1 = new System.Windows.Forms.PictureBox();
             pictureBox2 = new System.Windows.Forms.PictureBox();
@@ -59,8 +58,8 @@
             pictureBox23 = new System.Windows.Forms.PictureBox();
             pictureBox24 = new System.Windows.Forms.PictureBox();
             pictureBox25 = new System.Windows.Forms.PictureBox();
-            pictureBox26 = new System.Windows.Forms.PictureBox();
             gameTimer = new System.Windows.Forms.Timer(components);
+            pictureBox26 = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -146,6 +145,7 @@
             // 
             // pacman
             // 
+            pacman.BackColor = System.Drawing.Color.Transparent;
             pacman.Image = global::PACMAN_GAME.Properties.Resources.left;
             pacman.Location = new System.Drawing.Point(28, 47);
             pacman.Name = "pacman";
@@ -158,7 +158,8 @@
             // 
             // pinkGhost
             // 
-            pinkGhost.Image = ((System.Drawing.Image)resources.GetObject("pinkGhost.Image"));
+            pinkGhost.BackColor = System.Drawing.Color.Transparent;
+            pinkGhost.Image = global::PACMAN_GAME.Properties.Resources.red_ghost;
             pinkGhost.Location = new System.Drawing.Point(602, 78);
             pinkGhost.Name = "pinkGhost";
             pinkGhost.Size = new System.Drawing.Size(45, 60);
@@ -168,7 +169,8 @@
             // 
             // yellowGhost
             // 
-            yellowGhost.Image = ((System.Drawing.Image)resources.GetObject("yellowGhost.Image"));
+            yellowGhost.BackColor = System.Drawing.Color.Transparent;
+            yellowGhost.Image = global::PACMAN_GAME.Properties.Resources.red_ghost;
             yellowGhost.Location = new System.Drawing.Point(493, 309);
             yellowGhost.Name = "yellowGhost";
             yellowGhost.Size = new System.Drawing.Size(45, 60);
@@ -178,7 +180,8 @@
             // 
             // redGhost
             // 
-            redGhost.Image = ((System.Drawing.Image)resources.GetObject("redGhost.Image"));
+            redGhost.BackColor = System.Drawing.Color.Transparent;
+            redGhost.Image = global::PACMAN_GAME.Properties.Resources.red_ghost;
             redGhost.Location = new System.Drawing.Point(366, 92);
             redGhost.Name = "redGhost";
             redGhost.Size = new System.Drawing.Size(45, 60);
@@ -189,221 +192,244 @@
             // 
             // pictureBox6
             // 
-            pictureBox6.Image = ((System.Drawing.Image)resources.GetObject("pictureBox6.Image"));
+            pictureBox6.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox6.Location = new System.Drawing.Point(296, 397);
             pictureBox6.Name = "pictureBox6";
             pictureBox6.Size = new System.Drawing.Size(43, 41);
             pictureBox6.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox6.TabIndex = 9;
             pictureBox6.TabStop = false;
+            pictureBox6.Tag = "coin";
             // 
             // pictureBox7
             // 
-            pictureBox7.Image = ((System.Drawing.Image)resources.GetObject("pictureBox7.Image"));
+            pictureBox7.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox7.Location = new System.Drawing.Point(345, 397);
             pictureBox7.Name = "pictureBox7";
             pictureBox7.Size = new System.Drawing.Size(43, 41);
             pictureBox7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox7.TabIndex = 10;
             pictureBox7.TabStop = false;
+            pictureBox7.Tag = "coin";
             // 
             // pictureBox8
             // 
-            pictureBox8.Image = ((System.Drawing.Image)resources.GetObject("pictureBox8.Image"));
+            pictureBox8.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox8.Location = new System.Drawing.Point(394, 397);
             pictureBox8.Name = "pictureBox8";
             pictureBox8.Size = new System.Drawing.Size(43, 41);
             pictureBox8.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox8.TabIndex = 11;
             pictureBox8.TabStop = false;
+            pictureBox8.Tag = "coin";
             // 
             // pictureBox9
             // 
-            pictureBox9.Image = ((System.Drawing.Image)resources.GetObject("pictureBox9.Image"));
+            pictureBox9.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox9.Location = new System.Drawing.Point(443, 397);
             pictureBox9.Name = "pictureBox9";
             pictureBox9.Size = new System.Drawing.Size(43, 41);
             pictureBox9.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox9.TabIndex = 12;
             pictureBox9.TabStop = false;
+            pictureBox9.Tag = "coin";
             // 
             // pictureBox10
             // 
-            pictureBox10.Image = ((System.Drawing.Image)resources.GetObject("pictureBox10.Image"));
+            pictureBox10.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox10.Location = new System.Drawing.Point(495, 397);
             pictureBox10.Name = "pictureBox10";
             pictureBox10.Size = new System.Drawing.Size(43, 41);
             pictureBox10.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox10.TabIndex = 13;
             pictureBox10.TabStop = false;
+            pictureBox10.Tag = "coin";
             // 
             // pictureBox11
             // 
-            pictureBox11.Image = ((System.Drawing.Image)resources.GetObject("pictureBox11.Image"));
+            pictureBox11.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox11.Location = new System.Drawing.Point(296, 341);
             pictureBox11.Name = "pictureBox11";
             pictureBox11.Size = new System.Drawing.Size(43, 41);
             pictureBox11.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox11.TabIndex = 14;
             pictureBox11.TabStop = false;
+            pictureBox11.Tag = "coin";
             // 
             // pictureBox12
             // 
-            pictureBox12.Image = ((System.Drawing.Image)resources.GetObject("pictureBox12.Image"));
+            pictureBox12.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox12.Location = new System.Drawing.Point(415, 12);
             pictureBox12.Name = "pictureBox12";
             pictureBox12.Size = new System.Drawing.Size(43, 41);
             pictureBox12.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox12.TabIndex = 19;
             pictureBox12.TabStop = false;
+            pictureBox12.Tag = "coin";
             pictureBox12.Visible = false;
             // 
             // pictureBox13
             // 
-            pictureBox13.Image = ((System.Drawing.Image)resources.GetObject("pictureBox13.Image"));
+            pictureBox13.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox13.Location = new System.Drawing.Point(363, 12);
             pictureBox13.Name = "pictureBox13";
             pictureBox13.Size = new System.Drawing.Size(43, 41);
             pictureBox13.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox13.TabIndex = 18;
             pictureBox13.TabStop = false;
+            pictureBox13.Tag = "coin";
             pictureBox13.Visible = false;
             // 
             // pictureBox14
             // 
-            pictureBox14.Image = ((System.Drawing.Image)resources.GetObject("pictureBox14.Image"));
+            pictureBox14.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox14.Location = new System.Drawing.Point(314, 12);
             pictureBox14.Name = "pictureBox14";
             pictureBox14.Size = new System.Drawing.Size(43, 41);
             pictureBox14.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox14.TabIndex = 17;
             pictureBox14.TabStop = false;
+            pictureBox14.Tag = "coin";
             pictureBox14.Visible = false;
             // 
             // pictureBox15
             // 
-            pictureBox15.Image = ((System.Drawing.Image)resources.GetObject("pictureBox15.Image"));
+            pictureBox15.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox15.Location = new System.Drawing.Point(265, 12);
             pictureBox15.Name = "pictureBox15";
             pictureBox15.Size = new System.Drawing.Size(43, 41);
             pictureBox15.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox15.TabIndex = 16;
             pictureBox15.TabStop = false;
+            pictureBox15.Tag = "coin";
             pictureBox15.Visible = false;
             // 
             // pictureBox16
             // 
-            pictureBox16.Image = ((System.Drawing.Image)resources.GetObject("pictureBox16.Image"));
+            pictureBox16.BackColor = System.Drawing.Color.Transparent;
+            pictureBox16.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox16.Location = new System.Drawing.Point(216, 12);
             pictureBox16.Name = "pictureBox16";
             pictureBox16.Size = new System.Drawing.Size(43, 41);
             pictureBox16.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox16.TabIndex = 15;
             pictureBox16.TabStop = false;
+            pictureBox16.Tag = "coin";
             // 
             // pictureBox17
             // 
-            pictureBox17.Image = ((System.Drawing.Image)resources.GetObject("pictureBox17.Image"));
+            pictureBox17.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox17.Location = new System.Drawing.Point(748, 12);
             pictureBox17.Name = "pictureBox17";
             pictureBox17.Size = new System.Drawing.Size(43, 41);
             pictureBox17.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox17.TabIndex = 24;
             pictureBox17.TabStop = false;
+            pictureBox17.Tag = "coin";
             // 
             // pictureBox18
             // 
-            pictureBox18.Image = ((System.Drawing.Image)resources.GetObject("pictureBox18.Image"));
+            pictureBox18.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox18.Location = new System.Drawing.Point(696, 12);
             pictureBox18.Name = "pictureBox18";
             pictureBox18.Size = new System.Drawing.Size(43, 41);
             pictureBox18.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox18.TabIndex = 23;
             pictureBox18.TabStop = false;
+            pictureBox18.Tag = "coin";
             // 
             // pictureBox19
             // 
-            pictureBox19.Image = ((System.Drawing.Image)resources.GetObject("pictureBox19.Image"));
+            pictureBox19.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox19.Location = new System.Drawing.Point(647, 12);
             pictureBox19.Name = "pictureBox19";
             pictureBox19.Size = new System.Drawing.Size(43, 41);
             pictureBox19.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox19.TabIndex = 22;
             pictureBox19.TabStop = false;
+            pictureBox19.Tag = "coin";
             // 
             // pictureBox20
             // 
-            pictureBox20.Image = ((System.Drawing.Image)resources.GetObject("pictureBox20.Image"));
+            pictureBox20.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox20.Location = new System.Drawing.Point(598, 12);
             pictureBox20.Name = "pictureBox20";
             pictureBox20.Size = new System.Drawing.Size(43, 41);
             pictureBox20.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox20.TabIndex = 21;
             pictureBox20.TabStop = false;
+            pictureBox20.Tag = "coin";
             // 
             // pictureBox21
             // 
-            pictureBox21.Image = ((System.Drawing.Image)resources.GetObject("pictureBox21.Image"));
+            pictureBox21.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox21.Location = new System.Drawing.Point(549, 12);
             pictureBox21.Name = "pictureBox21";
             pictureBox21.Size = new System.Drawing.Size(43, 41);
             pictureBox21.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox21.TabIndex = 20;
             pictureBox21.TabStop = false;
+            pictureBox21.Tag = "coin";
             // 
             // pictureBox22
             // 
-            pictureBox22.Image = ((System.Drawing.Image)resources.GetObject("pictureBox22.Image"));
+            pictureBox22.BackColor = System.Drawing.Color.Transparent;
+            pictureBox22.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox22.Location = new System.Drawing.Point(216, 78);
             pictureBox22.Name = "pictureBox22";
             pictureBox22.Size = new System.Drawing.Size(43, 41);
             pictureBox22.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox22.TabIndex = 25;
             pictureBox22.TabStop = false;
+            pictureBox22.Tag = "coin";
             // 
             // pictureBox23
             // 
-            pictureBox23.Image = ((System.Drawing.Image)resources.GetObject("pictureBox23.Image"));
+            pictureBox23.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox23.Location = new System.Drawing.Point(265, 78);
             pictureBox23.Name = "pictureBox23";
             pictureBox23.Size = new System.Drawing.Size(43, 41);
             pictureBox23.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox23.TabIndex = 26;
             pictureBox23.TabStop = false;
+            pictureBox23.Tag = "coin";
             // 
             // pictureBox24
             // 
-            pictureBox24.Image = ((System.Drawing.Image)resources.GetObject("pictureBox24.Image"));
+            pictureBox24.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox24.Location = new System.Drawing.Point(748, 78);
             pictureBox24.Name = "pictureBox24";
             pictureBox24.Size = new System.Drawing.Size(43, 41);
             pictureBox24.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox24.TabIndex = 27;
             pictureBox24.TabStop = false;
+            pictureBox24.Tag = "coin";
             // 
             // pictureBox25
             // 
-            pictureBox25.Image = ((System.Drawing.Image)resources.GetObject("pictureBox25.Image"));
+            pictureBox25.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox25.Location = new System.Drawing.Point(696, 78);
             pictureBox25.Name = "pictureBox25";
             pictureBox25.Size = new System.Drawing.Size(43, 41);
             pictureBox25.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox25.TabIndex = 28;
             pictureBox25.TabStop = false;
+            pictureBox25.Tag = "coin";
+            // 
+            // gameTimer
+            // 
+            gameTimer.Tick += MainGameTimer;
             // 
             // pictureBox26
             // 
-            pictureBox26.Image = ((System.Drawing.Image)resources.GetObject("pictureBox26.Image"));
+            pictureBox26.Image = global::PACMAN_GAME.Properties.Resources.moneta;
             pictureBox26.Location = new System.Drawing.Point(434, 78);
             pictureBox26.Name = "pictureBox26";
             pictureBox26.Size = new System.Drawing.Size(43, 41);
             pictureBox26.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox26.TabIndex = 29;
             pictureBox26.TabStop = false;
-            // 
-            // gameTimer
-            // 
-            gameTimer.Tick += MainGameTimer;
+            pictureBox26.Tag = "coin";
             // 
             // Form1
             // 
@@ -411,11 +437,14 @@
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             ClientSize = new System.Drawing.Size(800, 450);
+            Controls.Add(yellowGhost);
+            Controls.Add(pinkGhost);
+            Controls.Add(redGhost);
+            Controls.Add(pacman);
             Controls.Add(pictureBox26);
             Controls.Add(pictureBox25);
             Controls.Add(pictureBox24);
             Controls.Add(pictureBox23);
-            Controls.Add(pictureBox22);
             Controls.Add(pictureBox17);
             Controls.Add(pictureBox18);
             Controls.Add(pictureBox19);
@@ -432,15 +461,12 @@
             Controls.Add(pictureBox8);
             Controls.Add(pictureBox7);
             Controls.Add(pictureBox6);
-            Controls.Add(redGhost);
-            Controls.Add(yellowGhost);
-            Controls.Add(pinkGhost);
-            Controls.Add(pacman);
             Controls.Add(pictureBox3);
             Controls.Add(pictureBox4);
             Controls.Add(pictureBox2);
             Controls.Add(pictureBox1);
             Controls.Add(txtScore);
+            Controls.Add(pictureBox22);
             Text = "Form1";
             Load += Form1_Load;
             KeyDown += keyisdown;
