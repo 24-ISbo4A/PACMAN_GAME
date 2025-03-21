@@ -4,6 +4,12 @@ namespace PACMAN_GAME
     {
         bool group, godown, goleft, goright, isGameOver;
         int score, playerSpeed, redGhostSpeed, yellowGhostSpeed, pinkGhostX, pinkGhostY;
+
+        // Направления движения призраков
+        bool redGhostGoRight = true;
+        bool yellowGhostGoDown = true;
+        bool pinkGhostGoLeft = true;
+
         public Form1()
         {
             InitializeComponent();
@@ -46,7 +52,6 @@ namespace PACMAN_GAME
             {
                 newLeft -= playerSpeed;
                 pacman.Image = Properties.Resources.left;
-
             }
 
             if (goright)
@@ -109,14 +114,80 @@ namespace PACMAN_GAME
                 }
             }
 
-            // Движение призраков
-            redGhost.Left += redGhostSpeed;
+            // Движение красного призрака
+            if (redGhostGoRight)
+            {
+                redGhost.Left += redGhostSpeed;
+                if (redGhost.Right >= this.ClientSize.Width || CheckWallCollision(redGhost))
+                {
+                    redGhostGoRight = false;
+                }
+            }
+            else
+            {
+                redGhost.Left -= redGhostSpeed;
+                if (redGhost.Left <= 0 || CheckWallCollision(redGhost))
+                {
+                    redGhostGoRight = true;
+                }
+            }
+
+            // Движение желтого призрака
+            if (yellowGhostGoDown)
+            {
+                yellowGhost.Top += yellowGhostSpeed;
+                if (yellowGhost.Bottom >= this.ClientSize.Height || CheckWallCollision(yellowGhost))
+                {
+                    yellowGhostGoDown = false;
+                }
+            }
+            else
+            {
+                yellowGhost.Top -= yellowGhostSpeed;
+                if (yellowGhost.Top <= 0 || CheckWallCollision(yellowGhost))
+                {
+                    yellowGhostGoDown = true;
+                }
+            }
+
+            // Движение розового призрака
+            if (pinkGhostGoLeft)
+            {
+                pinkGhost.Left -= pinkGhostX;
+                if (pinkGhost.Left <= 0 || CheckWallCollision(pinkGhost))
+                {
+                    pinkGhostGoLeft = false;
+                }
+            }
+            else
+            {
+                pinkGhost.Left += pinkGhostX;
+                if (pinkGhost.Right >= this.ClientSize.Width || CheckWallCollision(pinkGhost))
+                {
+                    pinkGhostGoLeft = true;
+                }
+            }
 
             if (score == 46)
             {
                 // Победа
                 gameOver("You Win!");
             }
+        }
+
+        private bool CheckWallCollision(PictureBox ghost)
+        {
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && (string)x.Tag == "wall")
+                {
+                    if (ghost.Bounds.IntersectsWith(x.Bounds))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private void resetGame()
