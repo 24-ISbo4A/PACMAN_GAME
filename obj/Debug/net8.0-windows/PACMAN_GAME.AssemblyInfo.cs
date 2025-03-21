@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PACMAN_GAME")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+456c6908486ced8505273772f307bbbc3d44abea")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+428370774c535a401c12c8e85b5f9275dc1dba12")]
 [assembly: System.Reflection.AssemblyProductAttribute("PACMAN_GAME")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PACMAN_GAME")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

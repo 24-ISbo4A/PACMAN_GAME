@@ -96,10 +96,10 @@ namespace PACMAN_GAME
             }
 
             // Проверка выхода за границы экрана
-            if (pacman.Left < -10) pacman.Left = 600;
-            if (pacman.Left > 600) pacman.Left = -10;
-            if (pacman.Top < -10) pacman.Top = 550;
-            if (pacman.Top > 550) pacman.Top = 0;
+            if (pacman.Left < -10) pacman.Left = 750; // правая граница
+            if (pacman.Left > 750) pacman.Left = -10; // левая граница
+            if (pacman.Top < -10) pacman.Top = 450; // верхняя граница
+            if (pacman.Top > 450) pacman.Top = 0; // нижняя границы
 
             // Проверка сбора монет
             foreach (Control x in this.Controls)
@@ -168,7 +168,16 @@ namespace PACMAN_GAME
                 }
             }
 
-            if (score == 46)
+            // Проверка столкновения Пакмана с призраками
+            if (pacman.Bounds.IntersectsWith(redGhost.Bounds) ||
+                pacman.Bounds.IntersectsWith(yellowGhost.Bounds) ||
+                pacman.Bounds.IntersectsWith(pinkGhost.Bounds))
+            {
+                // Пакман умер
+                gameOver("You Died!");
+            }
+
+            if (score == 21)
             {
                 // Победа
                 gameOver("You Win!");
