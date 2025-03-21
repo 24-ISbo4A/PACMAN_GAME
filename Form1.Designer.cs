@@ -397,7 +397,7 @@
             // pictureBox24
             // 
             pictureBox24.Image = Properties.Resources.moneta;
-            pictureBox24.Location = new Point(748, 88);
+            pictureBox24.Location = new Point(748, 89);
             pictureBox24.Name = "pictureBox24";
             pictureBox24.Size = new Size(43, 46);
             pictureBox24.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -423,7 +423,7 @@
             // pictureBox26
             // 
             pictureBox26.Image = Properties.Resources.moneta;
-            pictureBox26.Location = new Point(434, 88);
+            pictureBox26.Location = new Point(434, 89);
             pictureBox26.Name = "pictureBox26";
             pictureBox26.Size = new Size(43, 46);
             pictureBox26.SizeMode = PictureBoxSizeMode.StretchImage;
