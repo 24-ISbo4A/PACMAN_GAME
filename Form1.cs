@@ -96,10 +96,10 @@ namespace PACMAN_GAME
             }
 
             // Проверка выхода за границы экрана
-            if (pacman.Left < -10) pacman.Left = 750; // правая граница
-            if (pacman.Left > 750) pacman.Left = -10; // левая граница
-            if (pacman.Top < -10) pacman.Top = 450; // верхняя граница
-            if (pacman.Top > 450) pacman.Top = 0; // нижняя границы
+            if (pacman.Left < -10) pacman.Left = this.ClientSize.Width - 10; // правая граница
+            if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
+            if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
+            if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
 
             // Проверка сбора монет
             foreach (Control x in this.Controls)
