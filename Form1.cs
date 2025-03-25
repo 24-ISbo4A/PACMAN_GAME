@@ -1,4 +1,6 @@
+using System;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace PACMAN_GAME
 {
@@ -20,6 +22,12 @@ namespace PACMAN_GAME
         // Следующее запрошенное направление движения
         int nextDirection = 1;
 
+        // PictureBox для анимации смерти
+        private PictureBox deathAnimation;
+        private bool isDeathAnimationPlaying = false;
+        private Label gameOverLabel;
+        private Button restartButton;
+
         public Form1()
         {
             InitializeComponent();
@@ -34,21 +42,60 @@ namespace PACMAN_GAME
             this.Text = "Pac-Man Game";
 
             // Настраиваем PictureBox для анимации смерти
-            PictureBox deathAnimation = new PictureBox();
+            deathAnimation = new PictureBox();
             deathAnimation.Name = "deathAnimation";
-            deathAnimation.Size = new Size(1445, 1050);
+            deathAnimation.Size = new Size(40, 40);
             deathAnimation.SizeMode = PictureBoxSizeMode.Zoom;
-            deathAnimation.BackColor = Color.Black;
-            deathAnimation.Image = Properties.Resources.pacman_deathfone;
-            deathAnimation.Visible = true;
-            this.Controls.Add(deathAnimation);
+            deathAnimation.BackColor = Color.Transparent;
+            try
+            {
+                deathAnimation.Image = Image.FromFile("Resources/pacman-deathfone.gif");
+                deathAnimation.Visible = false;
+                this.Controls.Add(deathAnimation);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка загрузки анимации: " + ex.Message);
+            }
+
+            // Создаем метку GAME OVER
+            gameOverLabel = new Label();
+            gameOverLabel.Text = "GAME OVER";
+            gameOverLabel.Font = new Font("Arial", 48, FontStyle.Bold);
+            gameOverLabel.ForeColor = Color.Yellow;
+            gameOverLabel.BackColor = Color.Black;
+            gameOverLabel.AutoSize = true;
+            gameOverLabel.Visible = false;
+            this.Controls.Add(gameOverLabel);
+
+            // Создаем кнопку рестарта
+            restartButton = new Button();
+            restartButton.Text = "RESTART";
+            restartButton.Font = new Font("Arial", 24, FontStyle.Bold);
+            restartButton.BackColor = Color.Yellow;
+            restartButton.ForeColor = Color.Black;
+            restartButton.Size = new Size(200, 60);
+            restartButton.Visible = false;
+            restartButton.Click += (s, e) => resetGame();
+            this.Controls.Add(restartButton);
 
             resetGame();
         }
 
         private void label1_Click(object sender, EventArgs e) { }
 
-        private void Form1_Load(object sender, EventArgs e) { }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                // Загружаем изображение смерти
+                deathAnimation.Image = Image.FromFile("Resources/pacman-deathfone.gif");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка загрузки анимации: " + ex.Message);
+            }
+        }
 
         private void pictureBox5_Click(object sender, EventArgs e) { }
 
@@ -191,7 +238,7 @@ namespace PACMAN_GAME
             if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
             if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
             if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
-            
+
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
@@ -281,8 +328,62 @@ namespace PACMAN_GAME
             if (ghost.Top > this.ClientSize.Height - ghost.Height) ghost.Top = this.ClientSize.Height - ghost.Height;
         }
 
+        private void gameOver(string message)
+        {
+            isGameOver = true;
+            gameTimer.Stop();
+
+            // Скрываем все элементы игры
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x.Name != "deathAnimation")
+                {
+                    x.Visible = false;
+                }
+            }
+
+            // Скрываем счет
+            txtScore.Visible = false;
+
+            // Показываем анимацию смерти на месте Пакмана
+            deathAnimation.Location = pacman.Location;
+            deathAnimation.Visible = true;
+            isDeathAnimationPlaying = true;
+
+            // Запускаем таймер для показа экрана GAME OVER
+            var animationTimer = new System.Windows.Forms.Timer();
+            animationTimer.Interval = 1000; // 1 секунда для одного проигрывания
+            animationTimer.Tick += (s, e) =>
+            {
+                if (isDeathAnimationPlaying)
+                {
+                    isDeathAnimationPlaying = false;
+                    deathAnimation.Visible = false;
+                    
+                    // Показываем экран GAME OVER
+                    gameOverLabel.Location = new Point(
+                        (this.ClientSize.Width - gameOverLabel.Width) / 2,
+                        (this.ClientSize.Height - gameOverLabel.Height) / 2 - 50
+                    );
+                    gameOverLabel.Visible = true;
+
+                    // Показываем кнопку рестарта
+                    restartButton.Location = new Point(
+                        (this.ClientSize.Width - restartButton.Width) / 2,
+                        gameOverLabel.Bottom + 30
+                    );
+                    restartButton.Visible = true;
+                }
+            };
+            animationTimer.Start();
+        }
+
         private void resetGame()
         {
+            // Скрываем экран GAME OVER и кнопку рестарта
+            gameOverLabel.Visible = false;
+            restartButton.Visible = false;
+
             txtScore.Text = "Score: 0";
             score = 0;
 
@@ -294,13 +395,20 @@ namespace PACMAN_GAME
             isGameOver = false;
 
             // Скрываем анимацию смерти
+            deathAnimation.Visible = false;
+            isDeathAnimationPlaying = false;
+
+            // Показываем все элементы игры
             foreach (Control x in this.Controls)
             {
-                if (x is PictureBox && x.Name == "deathAnimation")
+                if (x is PictureBox && x.Name != "deathAnimation")
                 {
-                    x.Visible = false;
+                    x.Visible = true;
                 }
             }
+
+            // Показываем счет
+            txtScore.Visible = true;
 
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
@@ -321,39 +429,12 @@ namespace PACMAN_GAME
             yellowGhostDirection = random.Next(4);
             pinkGhostDirection = random.Next(4);
 
-            foreach (Control x in this.Controls)
-            {
-                if (x is PictureBox && x.Name != "deathAnimation")
-                {
-                    x.Visible = true;
-                }
-            }
-
             gameTimer.Start();
         }
 
-        private void gameOver(string message)
-        {
-            isGameOver = true;
-            gameTimer.Stop();
+        private void pictureBox166_Click(object sender, EventArgs e) { }
 
-            // Показываем анимацию смерти
-            foreach (Control x in this.Controls)
-            {
-                if (x is PictureBox && x.Name == "deathAnimation")
-                {
-                    x.Visible = true;
-                }
-            }
-
-            MessageBox.Show(message);
-            resetGame();
-        }
-
-        private void pictureBox166_Click(object sender, EventArgs e)
-        {
-
-        }
+        private void pictureBox167_Click(object sender, EventArgs e) { }
     }
 }
 

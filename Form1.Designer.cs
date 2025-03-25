@@ -208,6 +208,7 @@
             pictureBox174 = new PictureBox();
             pictureBox175 = new PictureBox();
             pictureBox165 = new PictureBox();
+            pictureBox167 = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -384,6 +385,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox174).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox175).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox165).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox167).BeginInit();
             SuspendLayout();
             // 
             // txtScore
@@ -731,7 +733,7 @@
             pictureBox27.BackColor = Color.Navy;
             pictureBox27.Location = new Point(-1, 943);
             pictureBox27.Name = "pictureBox27";
-            pictureBox27.Size = new Size(1415, 35);
+            pictureBox27.Size = new Size(1431, 35);
             pictureBox27.TabIndex = 31;
             pictureBox27.TabStop = false;
             pictureBox27.Tag = "wall";
@@ -2306,15 +2308,38 @@
             pictureBox165.TabStop = false;
             pictureBox165.Tag = "wall";
             // 
+            // pictureBox167
+            // 
+            pictureBox167.BackColor = Color.Transparent;
+            pictureBox167.Image = (Image)resources.GetObject("pictureBox167.Image");
+            pictureBox167.Location = new Point(1399, 278);
+            pictureBox167.Name = "pictureBox167";
+            pictureBox167.Size = new Size(45, 60);
+            pictureBox167.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox167.TabIndex = 184;
+            pictureBox167.TabStop = false;
+            pictureBox167.Tag = "ghost";
+            pictureBox167.Click += pictureBox167_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ActiveCaptionText;
             ClientSize = new Size(1426, 1061);
-            Controls.Add(pictureBox165);
-            Controls.Add(pictureBox174);
+            Controls.Add(pictureBox92);
+            Controls.Add(pictureBox93);
             Controls.Add(pictureBox173);
+            Controls.Add(pictureBox74);
+            Controls.Add(pictureBox38);
+            Controls.Add(pictureBox27);
+            Controls.Add(pictureBox2);
+            Controls.Add(pictureBox174);
+            Controls.Add(pictureBox175);
+            Controls.Add(pictureBox158);
+            Controls.Add(pictureBox57);
+            Controls.Add(pictureBox167);
+            Controls.Add(pictureBox165);
             Controls.Add(pictureBox171);
             Controls.Add(pictureBox170);
             Controls.Add(pictureBox168);
@@ -2325,7 +2350,6 @@
             Controls.Add(pictureBox161);
             Controls.Add(pictureBox160);
             Controls.Add(pictureBox159);
-            Controls.Add(pictureBox158);
             Controls.Add(pictureBox157);
             Controls.Add(pictureBox156);
             Controls.Add(pictureBox155);
@@ -2390,8 +2414,6 @@
             Controls.Add(pictureBox96);
             Controls.Add(pictureBox95);
             Controls.Add(pictureBox94);
-            Controls.Add(pictureBox93);
-            Controls.Add(pictureBox92);
             Controls.Add(pictureBox91);
             Controls.Add(pictureBox89);
             Controls.Add(pictureBox88);
@@ -2406,7 +2428,6 @@
             Controls.Add(pictureBox77);
             Controls.Add(pictureBox76);
             Controls.Add(pictureBox75);
-            Controls.Add(pictureBox74);
             Controls.Add(pictureBox73);
             Controls.Add(pictureBox72);
             Controls.Add(pictureBox71);
@@ -2424,7 +2445,6 @@
             Controls.Add(pictureBox59);
             Controls.Add(pictureBox58);
             Controls.Add(pictureBox31);
-            Controls.Add(pictureBox57);
             Controls.Add(pictureBox56);
             Controls.Add(pictureBox55);
             Controls.Add(pictureBox54);
@@ -2453,7 +2473,6 @@
             Controls.Add(pictureBox32);
             Controls.Add(pictureBox30);
             Controls.Add(pictureBox5);
-            Controls.Add(pictureBox27);
             Controls.Add(txtScore);
             Controls.Add(yellowGhost);
             Controls.Add(pinkGhost);
@@ -2481,14 +2500,11 @@
             Controls.Add(pictureBox6);
             Controls.Add(pictureBox3);
             Controls.Add(pictureBox4);
-            Controls.Add(pictureBox2);
             Controls.Add(pictureBox1);
             Controls.Add(pictureBox22);
-            Controls.Add(pictureBox38);
             Controls.Add(pictureBox85);
             Controls.Add(pictureBox87);
             Controls.Add(pictureBox90);
-            Controls.Add(pictureBox175);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -2670,6 +2686,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox174).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox175).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox165).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox167).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -2854,5 +2871,6 @@
         private PictureBox pictureBox174;
         private PictureBox pictureBox175;
         private PictureBox pictureBox165;
+        private PictureBox pictureBox167;
     }
 }
