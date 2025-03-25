@@ -288,13 +288,13 @@ namespace PACMAN_GAME
 
             // Фиксированные позиции спавна призраков
             redGhost.Left = 710;
-            redGhost.Top = 420;
+            redGhost.Top = 520;
 
             yellowGhost.Left = 710;
-            yellowGhost.Top = 420;
+            yellowGhost.Top = 520;
 
             pinkGhost.Left = 710;
-            pinkGhost.Top = 420;
+            pinkGhost.Top = 520;
 
             // Случайные начальные направления для призраков
             redGhostDirection = random.Next(4);
