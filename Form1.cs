@@ -1,4 +1,6 @@
 using System.Drawing;
+using System.Windows.Forms;
+using Timer = System.Windows.Forms.Timer;
 
 namespace PACMAN_GAME
 {
@@ -20,6 +22,11 @@ namespace PACMAN_GAME
         // Следующее запрошенное направление движения
         int nextDirection = 1;
 
+        // Add a new variable to track fear mode
+        bool isFearMode = false;
+        int fearModeDuration = 5000; // Duration in milliseconds
+        Timer fearModeTimer = new Timer();
+
         public Form1()
         {
             InitializeComponent();
@@ -32,6 +39,8 @@ namespace PACMAN_GAME
             this.MaximumSize = new Size(1445, 1050);
             // Устанавливаем заголовок окна
             this.Text = "Pac-Man Game";
+            fearModeTimer.Interval = fearModeDuration;
+            fearModeTimer.Tick += EndFearMode;
             resetGame();
         }
 
@@ -87,6 +96,20 @@ namespace PACMAN_GAME
         private void MainGameTimer(object sender, EventArgs e)
         {
             txtScore.Text = "Score: " + score;
+
+            // Check for large coin collection
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && (string)x.Tag == "largeCoin" && x.Visible)
+                {
+                    if (pacman.Bounds.IntersectsWith(x.Bounds))
+                    {
+                        score += 50; // Large coin score
+                        x.Visible = false;
+                        ActivateFearMode();
+                    }
+                }
+            }
 
             // Проверяем возможность поворота в запрошенном направлении
             if (nextDirection != pacmanDirection)
@@ -215,52 +238,63 @@ namespace PACMAN_GAME
 
         private void MoveGhost(PictureBox ghost, ref int direction, int speed)
         {
-            // Случайно меняем направление каждые 100 тиков таймера
-            if (random.Next(100) == 0)
+            if (isFearMode)
             {
-                direction = random.Next(4); // 0-3 для четырех направлений
+                // Move away from Pacman
+                if (ghost.Left < pacman.Left) direction = 3; // Move left
+                else if (ghost.Left > pacman.Left) direction = 1; // Move right
+                if (ghost.Top < pacman.Top) direction = 0; // Move up
+                else if (ghost.Top > pacman.Top) direction = 2; // Move down
             }
-
-            int newLeft = ghost.Left;
-            int newTop = ghost.Top;
-
-            switch (direction)
+            else
             {
-                case 0: // вверх
-                    newTop -= speed;
-                    break;
-                case 1: // вправо
-                    newLeft += speed;
-                    break;
-                case 2: // вниз
-                    newTop += speed;
-                    break;
-                case 3: // влево
-                    newLeft -= speed;
-                    break;
-            }
-
-            // Проверяем столкновение со стенами
-            bool canMove = true;
-            foreach (Control x in this.Controls)
-            {
-                if (x is PictureBox && (string)x.Tag == "wall")
+                // Случайно меняем направление каждые 100 тиков таймера
+                if (random.Next(100) == 0)
                 {
-                    Rectangle newGhostBounds = new Rectangle(newLeft, newTop, ghost.Width, ghost.Height);
-                    if (newGhostBounds.IntersectsWith(x.Bounds))
-                    {
-                        canMove = false;
-                        direction = random.Next(4); // Меняем направление при столкновении
+                    direction = random.Next(4); // 0-3 для четырех направлений
+                }
+
+                int newLeft = ghost.Left;
+                int newTop = ghost.Top;
+
+                switch (direction)
+                {
+                    case 0: // вверх
+                        newTop -= speed;
                         break;
+                    case 1: // вправо
+                        newLeft += speed;
+                        break;
+                    case 2: // вниз
+                        newTop += speed;
+                        break;
+                    case 3: // влево
+                        newLeft -= speed;
+                        break;
+                }
+
+                // Проверяем столкновение со стенами
+                bool canMove = true;
+                foreach (Control x in this.Controls)
+                {
+                    if (x is PictureBox && (string)x.Tag == "wall")
+                    {
+                        Rectangle newGhostBounds = new Rectangle(newLeft, newTop, ghost.Width, ghost.Height);
+                        if (newGhostBounds.IntersectsWith(x.Bounds))
+                        {
+                            canMove = false;
+                            direction = random.Next(4); // Меняем направление при столкновении
+                            break;
+                        }
                     }
                 }
-            }
 
-            // Если движение возможно, обновляем позицию призрака
-            if (canMove)
-            {
-                ghost.Left = newLeft;
-                ghost.Top = newTop;
+                // Если движение возможно, обновляем позицию призрака
+                if (canMove)
+                {
+                    ghost.Left = newLeft;
+                    ghost.Top = newTop;
+                }
             }
 
             // Проверка выхода за границы экрана
@@ -346,6 +380,26 @@ namespace PACMAN_GAME
         private void pictureBox166_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void ActivateFearMode()
+        {
+            isFearMode = true;
+            fearModeTimer.Start();
+            // Change ghost images to fear mode (placeholder)
+            redGhost.Image = Properties.Resources.fearGhost;
+            yellowGhost.Image = Properties.Resources.fearGhost;
+            pinkGhost.Image = Properties.Resources.fearGhost;
+        }
+
+        private void EndFearMode(object sender, EventArgs e)
+        {
+            isFearMode = false;
+            fearModeTimer.Stop();
+            // Reset ghost images to normal (placeholder)
+            redGhost.Image = Properties.Resources.redGhost;
+            yellowGhost.Image = Properties.Resources.yellowGhost;
+            pinkGhost.Image = Properties.Resources.pinkGhost;
         }
     }
 }
