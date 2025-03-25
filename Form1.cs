@@ -2,17 +2,34 @@ namespace PACMAN_GAME
 {
     public partial class Form1 : Form
     {
-        bool group, godown, goleft, goright, isGameOver;
-        int score, playerSpeed, redGhostSpeed, yellowGhostSpeed, pinkGhostX, pinkGhostY;
+        bool goUp, goDown, goLeft, goRight, isGameOver;
+        int score, playerSpeed, redGhostSpeed, yellowGhostSpeed, pinkGhostX;
+        Random random = new Random();
 
-        // Направления движения призраков
-        bool redGhostGoRight = true;
-        bool yellowGhostGoDown = true;
-        bool pinkGhostGoLeft = true;
+        // Направления движения призраков (0: вверх, 1: вправо, 2: вниз, 3: влево)
+        int redGhostDirection = 0;
+        int yellowGhostDirection = 0;
+        int pinkGhostDirection = 0;
+
+        // Размер одной клетки сетки
+        const int GRID_SIZE = 40;
+        // Текущее направление движения Пакмана
+        int pacmanDirection = 1; // 0: вверх, 1: вправо, 2: вниз, 3: влево
+        // Следующее запрошенное направление движения
+        int nextDirection = 1;
 
         public Form1()
         {
             InitializeComponent();
+            // Устанавливаем фиксированный размер окна
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            // Запрещаем изменение размера
+            this.MaximizeBox = false;
+            // Устанавливаем минимальный и максимальный размер окна
+            this.MinimumSize = new Size(1445, 1050);
+            this.MaximumSize = new Size(1445, 1050);
+            // Устанавливаем заголовок окна
+            this.Text = "Pac-Man Game";
             resetGame();
         }
 
@@ -26,59 +43,136 @@ namespace PACMAN_GAME
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Up) group = true;
-            if (e.KeyCode == Keys.Down) godown = true;
-            if (e.KeyCode == Keys.Left) goleft = true;
-            if (e.KeyCode == Keys.Right) goright = true;
+            // Проверяем нажатие клавиши R для рестарта
+            if (e.KeyCode == Keys.R)
+            {
+                gameTimer.Stop();
+                resetGame();
+                return;
+            }
+
+            // Устанавливаем следующее направление движения
+            if (e.KeyCode == Keys.Up)
+            {
+                nextDirection = 0;
+                pacman.Image = Properties.Resources.up;
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                nextDirection = 2;
+                pacman.Image = Properties.Resources.down;
+            }
+            else if (e.KeyCode == Keys.Left)
+            {
+                nextDirection = 3;
+                pacman.Image = Properties.Resources.left;
+            }
+            else if (e.KeyCode == Keys.Right)
+            {
+                nextDirection = 1;
+                pacman.Image = Properties.Resources.right;
+            }
         }
 
         private void keyisup(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Up) group = false;
-            if (e.KeyCode == Keys.Down) godown = false;
-            if (e.KeyCode == Keys.Left) goleft = false;
-            if (e.KeyCode == Keys.Right) goright = false;
+            if (e.KeyCode == Keys.Up) goUp = false;
+            if (e.KeyCode == Keys.Down) goDown = false;
+            if (e.KeyCode == Keys.Left) goLeft = false;
+            if (e.KeyCode == Keys.Right) goRight = false;
         }
 
         private void MainGameTimer(object sender, EventArgs e)
         {
             txtScore.Text = "Score: " + score;
 
-            // Сохраняем текущие координаты Пакмана
+            // Проверяем возможность поворота в запрошенном направлении
+            if (nextDirection != pacmanDirection)
+            {
+                int checkLeft = pacman.Left;
+                int checkTop = pacman.Top;
+
+                // Вычисляем новую позицию для проверки
+                switch (nextDirection)
+                {
+                    case 0: // вверх
+                        checkTop -= GRID_SIZE;
+                        break;
+                    case 1: // вправо
+                        checkLeft += GRID_SIZE;
+                        break;
+                    case 2: // вниз
+                        checkTop += GRID_SIZE;
+                        break;
+                    case 3: // влево
+                        checkLeft -= GRID_SIZE;
+                        break;
+                }
+
+                // Проверяем, не столкнется ли Пакман со стеной при повороте
+                bool canTurn = true;
+                foreach (Control x in this.Controls)
+                {
+                    if (x is PictureBox && (string)x.Tag == "wall")
+                    {
+                        Rectangle newPacmanBounds = new Rectangle(checkLeft, checkTop, pacman.Width, pacman.Height);
+                        if (newPacmanBounds.IntersectsWith(x.Bounds))
+                        {
+                            canTurn = false;
+                            break;
+                        }
+                    }
+                }
+
+                // Если поворот возможен, меняем направление
+                if (canTurn)
+                {
+                    pacmanDirection = nextDirection;
+                }
+            }
+
+            // Движение Пакмана в текущем направлении
             int newLeft = pacman.Left;
             int newTop = pacman.Top;
 
-            if (goleft)
+            switch (pacmanDirection)
             {
-                newLeft -= playerSpeed;
-                pacman.Image = Properties.Resources.left;
+                case 0: // вверх
+                    newTop -= playerSpeed;
+                    break;
+                case 1: // вправо
+                    newLeft += playerSpeed;
+                    break;
+                case 2: // вниз
+                    newTop += playerSpeed;
+                    break;
+                case 3: // влево
+                    newLeft -= playerSpeed;
+                    break;
             }
 
-            if (goright)
+            // Проверяем выход за границы экрана с телепортацией по горизонтали
+            if (newLeft < -pacman.Width)
             {
-                newLeft += playerSpeed;
-                pacman.Image = Properties.Resources.right;
+                // Если вышел слева - появляется справа
+                newLeft = this.ClientSize.Width;
+            }
+            else if (newLeft > this.ClientSize.Width)
+            {
+                // Если вышел справа - появляется слева
+                newLeft = -pacman.Width + playerSpeed;
             }
 
-            if (godown)
-            {
-                newTop += playerSpeed;
-                pacman.Image = Properties.Resources.down;
-            }
+            // Вертикальные границы остаются без изменений
+            if (newTop < 0) newTop = 0;
+            if (newTop > this.ClientSize.Height - pacman.Height) newTop = this.ClientSize.Height - pacman.Height;
 
-            if (group)
-            {
-                newTop -= playerSpeed;
-                pacman.Image = Properties.Resources.up;
-            }
-
-            // Проверяем, не столкнется ли Пакман с какой-либо стеной после перемещения
+            // Проверяем столкновение со стенами
             bool canMove = true;
             foreach (Control x in this.Controls)
             {
                 if (x is PictureBox && (string)x.Tag == "wall")
                 {
-                    // Создаем временный прямоугольник для проверки столкновений
                     Rectangle newPacmanBounds = new Rectangle(newLeft, newTop, pacman.Width, pacman.Height);
                     if (newPacmanBounds.IntersectsWith(x.Bounds))
                     {
@@ -95,12 +189,6 @@ namespace PACMAN_GAME
                 pacman.Top = newTop;
             }
 
-            // Проверка выхода за границы экрана
-            if (pacman.Left < -10) pacman.Left = 750; // правая граница
-            if (pacman.Left > 750) pacman.Left = -10; // левая граница
-            if (pacman.Top < -10) pacman.Top = 450; // верхняя граница
-            if (pacman.Top > 450) pacman.Top = 0; // нижняя границы
-
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
@@ -114,89 +202,80 @@ namespace PACMAN_GAME
                 }
             }
 
-            // Движение красного призрака
-            if (redGhostGoRight)
-            {
-                redGhost.Left += redGhostSpeed;
-                if (redGhost.Right >= this.ClientSize.Width || CheckWallCollision(redGhost))
-                {
-                    redGhostGoRight = false;
-                }
-            }
-            else
-            {
-                redGhost.Left -= redGhostSpeed;
-                if (redGhost.Left <= 0 || CheckWallCollision(redGhost))
-                {
-                    redGhostGoRight = true;
-                }
-            }
-
-            // Движение желтого призрака
-            if (yellowGhostGoDown)
-            {
-                yellowGhost.Top += yellowGhostSpeed;
-                if (yellowGhost.Bottom >= this.ClientSize.Height || CheckWallCollision(yellowGhost))
-                {
-                    yellowGhostGoDown = false;
-                }
-            }
-            else
-            {
-                yellowGhost.Top -= yellowGhostSpeed;
-                if (yellowGhost.Top <= 0 || CheckWallCollision(yellowGhost))
-                {
-                    yellowGhostGoDown = true;
-                }
-            }
-
-            // Движение розового призрака
-            if (pinkGhostGoLeft)
-            {
-                pinkGhost.Left -= pinkGhostX;
-                if (pinkGhost.Left <= 0 || CheckWallCollision(pinkGhost))
-                {
-                    pinkGhostGoLeft = false;
-                }
-            }
-            else
-            {
-                pinkGhost.Left += pinkGhostX;
-                if (pinkGhost.Right >= this.ClientSize.Width || CheckWallCollision(pinkGhost))
-                {
-                    pinkGhostGoLeft = true;
-                }
-            }
+            // Движение призраков
+            MoveGhost(redGhost, ref redGhostDirection, redGhostSpeed);
+            MoveGhost(yellowGhost, ref yellowGhostDirection, yellowGhostSpeed);
+            MoveGhost(pinkGhost, ref pinkGhostDirection, pinkGhostX);
 
             // Проверка столкновения Пакмана с призраками
             if (pacman.Bounds.IntersectsWith(redGhost.Bounds) ||
                 pacman.Bounds.IntersectsWith(yellowGhost.Bounds) ||
                 pacman.Bounds.IntersectsWith(pinkGhost.Bounds))
             {
-                // Пакман умер
                 gameOver("You Died!");
             }
 
-            if (score == 21)
+            if (score == 127)
             {
-                // Победа
                 gameOver("You Win!");
             }
         }
 
-        private bool CheckWallCollision(PictureBox ghost)
+        private void MoveGhost(PictureBox ghost, ref int direction, int speed)
         {
+            // Случайно меняем направление каждые 100 тиков таймера
+            if (random.Next(100) == 0)
+            {
+                direction = random.Next(4); // 0-3 для четырех направлений
+            }
+
+            int newLeft = ghost.Left;
+            int newTop = ghost.Top;
+
+            switch (direction)
+            {
+                case 0: // вверх
+                    newTop -= speed;
+                    break;
+                case 1: // вправо
+                    newLeft += speed;
+                    break;
+                case 2: // вниз
+                    newTop += speed;
+                    break;
+                case 3: // влево
+                    newLeft -= speed;
+                    break;
+            }
+
+            // Проверяем столкновение со стенами
+            bool canMove = true;
             foreach (Control x in this.Controls)
             {
                 if (x is PictureBox && (string)x.Tag == "wall")
                 {
-                    if (ghost.Bounds.IntersectsWith(x.Bounds))
+                    Rectangle newGhostBounds = new Rectangle(newLeft, newTop, ghost.Width, ghost.Height);
+                    if (newGhostBounds.IntersectsWith(x.Bounds))
                     {
-                        return true;
+                        canMove = false;
+                        direction = random.Next(4); // Меняем направление при столкновении
+                        break;
                     }
                 }
             }
-            return false;
+
+            // Если движение возможно, обновляем позицию призрака
+            if (canMove)
+            {
+                ghost.Left = newLeft;
+                ghost.Top = newTop;
+            }
+
+            // Проверка выхода за границы экрана
+            if (ghost.Left < 0) ghost.Left = 0;
+            if (ghost.Left > this.ClientSize.Width - ghost.Width) ghost.Left = this.ClientSize.Width - ghost.Width;
+            if (ghost.Top < 0) ghost.Top = 0;
+            if (ghost.Top > this.ClientSize.Height - ghost.Height) ghost.Top = this.ClientSize.Height - ghost.Height;
         }
 
         private void resetGame()
@@ -204,25 +283,31 @@ namespace PACMAN_GAME
             txtScore.Text = "Score: 0";
             score = 0;
 
-            redGhostSpeed = 5;
-            yellowGhostSpeed = 5;
-            pinkGhostX = 5;
-            pinkGhostY = 5;
-            playerSpeed = 8;
+            redGhostSpeed = 10;
+            yellowGhostSpeed = 10;
+            pinkGhostX = 10;
+            playerSpeed = 12;
 
             isGameOver = false;
 
-            pacman.Left = 28;
+            // Фиксированная позиция спавна Пакмана
+            pacman.Left = 35;
             pacman.Top = 47;
 
-            redGhost.Left = 366;
-            redGhost.Top = 92;
+            // Фиксированные позиции спавна призраков
+            redGhost.Left = 710;
+            redGhost.Top = 420;
 
-            yellowGhost.Left = 493;
-            yellowGhost.Top = 309;
+            yellowGhost.Left = 710;
+            yellowGhost.Top = 420;
 
-            pinkGhost.Left = 602;
-            pinkGhost.Top = 78;
+            pinkGhost.Left = 710;
+            pinkGhost.Top = 420;
+
+            // Случайные начальные направления для призраков
+            redGhostDirection = random.Next(4);
+            yellowGhostDirection = random.Next(4);
+            pinkGhostDirection = random.Next(4);
 
             foreach (Control x in this.Controls)
             {
@@ -242,5 +327,11 @@ namespace PACMAN_GAME
             MessageBox.Show(message);
             resetGame();
         }
+
+        private void pictureBox166_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
+
