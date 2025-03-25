@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             txtScore = new Label();
             pictureBox1 = new PictureBox();
             pictureBox2 = new PictureBox();
@@ -453,8 +454,8 @@
             // pinkGhost
             // 
             pinkGhost.BackColor = Color.Transparent;
-            pinkGhost.Image = Properties.Resources.red_ghost;
-            pinkGhost.Location = new Point(723, 544);
+            pinkGhost.Image = (Image)resources.GetObject("pinkGhost.Image");
+            pinkGhost.Location = new Point(729, 544);
             pinkGhost.Name = "pinkGhost";
             pinkGhost.Size = new Size(45, 60);
             pinkGhost.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -464,8 +465,8 @@
             // yellowGhost
             // 
             yellowGhost.BackColor = Color.Transparent;
-            yellowGhost.Image = Properties.Resources.red_ghost;
-            yellowGhost.Location = new Point(723, 544);
+            yellowGhost.Image = (Image)resources.GetObject("yellowGhost.Image");
+            yellowGhost.Location = new Point(729, 544);
             yellowGhost.Name = "yellowGhost";
             yellowGhost.Size = new Size(45, 60);
             yellowGhost.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -475,8 +476,8 @@
             // redGhost
             // 
             redGhost.BackColor = Color.Transparent;
-            redGhost.Image = Properties.Resources.red_ghost;
-            redGhost.Location = new Point(723, 544);
+            redGhost.Image = (Image)resources.GetObject("redGhost.Image");
+            redGhost.Location = new Point(729, 544);
             redGhost.Name = "redGhost";
             redGhost.Size = new Size(45, 60);
             redGhost.SizeMode = PictureBoxSizeMode.StretchImage;
