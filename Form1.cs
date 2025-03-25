@@ -13,6 +13,7 @@ namespace PACMAN_GAME
         public Form1()
         {
             InitializeComponent();
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
             resetGame();
         }
 
