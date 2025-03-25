@@ -552,7 +552,32 @@ namespace PACMAN_GAME
             resetGame();
         }
 
-        private void pictureBox2_Click(object sender, EventArgs e) { }
+
+        /// <summary>
+        /// checks if there is a wall in front of the packman on X and Y so that he does not pass through the walls
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        private bool IsWallAt(int x, int y)
+        {
+            Rectangle testRect = new Rectangle(x, y, pacman.Width, pacman.Height);
+
+            foreach (Control control in this.Controls)
+            {
+                if (control is PictureBox && (string)control.Tag == "wall")
+                {
+                    if (testRect.IntersectsWith(control.Bounds))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private void pictureBox166_Click(object sender, EventArgs e)
+        {
 
         private void pictureBox1_Click(object sender, EventArgs e) { }
     }
