@@ -209,6 +209,7 @@
             pictureBox175 = new PictureBox();
             pictureBox165 = new PictureBox();
             pictureBox167 = new PictureBox();
+            pictureBox169 = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
@@ -386,6 +387,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox175).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox165).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox167).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox169).BeginInit();
             SuspendLayout();
             // 
             // txtScore
@@ -393,7 +395,7 @@
             txtScore.AutoSize = true;
             txtScore.Font = new Font("Segoe UI Semibold", 14.25F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 204);
             txtScore.ForeColor = Color.White;
-            txtScore.Location = new Point(12, 9);
+            txtScore.Location = new Point(14, 9);
             txtScore.Name = "txtScore";
             txtScore.Size = new Size(80, 25);
             txtScore.TabIndex = 0;
@@ -419,6 +421,7 @@
             pictureBox2.TabIndex = 2;
             pictureBox2.TabStop = false;
             pictureBox2.Tag = "wall";
+            pictureBox2.Click += pictureBox2_Click;
             // 
             // pictureBox3
             // 
@@ -2321,19 +2324,34 @@
             pictureBox167.Tag = "ghost";
             pictureBox167.Click += pictureBox167_Click;
             // 
+            // pictureBox169
+            // 
+            pictureBox169.BackColor = Color.Transparent;
+            pictureBox169.Image = (Image)resources.GetObject("pictureBox169.Image");
+            pictureBox169.Location = new Point(122, 127);
+            pictureBox169.Name = "pictureBox169";
+            pictureBox169.Size = new Size(140, 58);
+            pictureBox169.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox169.TabIndex = 185;
+            pictureBox169.TabStop = false;
+            pictureBox169.Tag = "ghost";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ActiveCaptionText;
             ClientSize = new Size(1426, 1061);
+            Controls.Add(txtScore);
+            Controls.Add(pictureBox2);
+            Controls.Add(pictureBox33);
+            Controls.Add(pictureBox169);
             Controls.Add(pictureBox92);
             Controls.Add(pictureBox93);
             Controls.Add(pictureBox173);
             Controls.Add(pictureBox74);
             Controls.Add(pictureBox38);
             Controls.Add(pictureBox27);
-            Controls.Add(pictureBox2);
             Controls.Add(pictureBox174);
             Controls.Add(pictureBox175);
             Controls.Add(pictureBox158);
@@ -2469,11 +2487,9 @@
             Controls.Add(pictureBox36);
             Controls.Add(pictureBox35);
             Controls.Add(pictureBox34);
-            Controls.Add(pictureBox33);
             Controls.Add(pictureBox32);
             Controls.Add(pictureBox30);
             Controls.Add(pictureBox5);
-            Controls.Add(txtScore);
             Controls.Add(yellowGhost);
             Controls.Add(pinkGhost);
             Controls.Add(redGhost);
@@ -2687,6 +2703,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox175).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox165).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox167).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox169).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -2872,5 +2889,6 @@
         private PictureBox pictureBox175;
         private PictureBox pictureBox165;
         private PictureBox pictureBox167;
+        private PictureBox pictureBox169;
     }
 }
