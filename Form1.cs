@@ -151,22 +151,6 @@ namespace PACMAN_GAME
                     break;
             }
 
-            // Проверяем выход за границы экрана с телепортацией по горизонтали
-            if (newLeft < -pacman.Width)
-            {
-                // Если вышел слева - появляется справа
-                newLeft = this.ClientSize.Width;
-            }
-            else if (newLeft > this.ClientSize.Width)
-            {
-                // Если вышел справа - появляется слева
-                newLeft = -pacman.Width + playerSpeed;
-            }
-
-            // Вертикальные границы остаются без изменений
-            if (newTop < 0) newTop = 0;
-            if (newTop > this.ClientSize.Height - pacman.Height) newTop = this.ClientSize.Height - pacman.Height;
-
             // Проверяем столкновение со стенами
             bool canMove = true;
             foreach (Control x in this.Controls)
@@ -189,6 +173,12 @@ namespace PACMAN_GAME
                 pacman.Top = newTop;
             }
 
+            // Проверка выхода за границы экрана
+            if (pacman.Left < -10) pacman.Left = this.ClientSize.Width - 10; // правая граница
+            if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
+            if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
+            if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
+            
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
