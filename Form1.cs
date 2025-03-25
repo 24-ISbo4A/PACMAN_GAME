@@ -32,6 +32,17 @@ namespace PACMAN_GAME
             this.MaximumSize = new Size(1445, 1050);
             // Устанавливаем заголовок окна
             this.Text = "Pac-Man Game";
+
+            // Настраиваем PictureBox для анимации смерти
+            PictureBox deathAnimation = new PictureBox();
+            deathAnimation.Name = "deathAnimation";
+            deathAnimation.Size = new Size(1445, 1050);
+            deathAnimation.SizeMode = PictureBoxSizeMode.Zoom;
+            deathAnimation.BackColor = Color.Black;
+            deathAnimation.Image = Properties.Resources.pacman_deathfone;
+            deathAnimation.Visible = true;
+            this.Controls.Add(deathAnimation);
+
             resetGame();
         }
 
@@ -282,6 +293,15 @@ namespace PACMAN_GAME
 
             isGameOver = false;
 
+            // Скрываем анимацию смерти
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x.Name == "deathAnimation")
+                {
+                    x.Visible = false;
+                }
+            }
+
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
             pacman.Top = 47;
@@ -303,7 +323,7 @@ namespace PACMAN_GAME
 
             foreach (Control x in this.Controls)
             {
-                if (x is PictureBox)
+                if (x is PictureBox && x.Name != "deathAnimation")
                 {
                     x.Visible = true;
                 }
@@ -316,6 +336,16 @@ namespace PACMAN_GAME
         {
             isGameOver = true;
             gameTimer.Stop();
+
+            // Показываем анимацию смерти
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x.Name == "deathAnimation")
+                {
+                    x.Visible = true;
+                }
+            }
+
             MessageBox.Show(message);
             resetGame();
         }
