@@ -387,9 +387,9 @@ namespace PACMAN_GAME
             isFearMode = true;
             fearModeTimer.Start();
             // Change ghost images to fear mode (placeholder)
-            redGhost.Image = Properties.Resources.fearGhost;
-            yellowGhost.Image = Properties.Resources.fearGhost;
-            pinkGhost.Image = Properties.Resources.fearGhost;
+            redGhost.Image = Properties.Resources.scared;
+            yellowGhost.Image = Properties.Resources.scared;
+            pinkGhost.Image = Properties.Resources.scared;
         }
 
         private void EndFearMode(object sender, EventArgs e)
@@ -397,9 +397,9 @@ namespace PACMAN_GAME
             isFearMode = false;
             fearModeTimer.Stop();
             // Reset ghost images to normal (placeholder)
-            redGhost.Image = Properties.Resources.redGhost;
-            yellowGhost.Image = Properties.Resources.yellowGhost;
-            pinkGhost.Image = Properties.Resources.pinkGhost;
+            redGhost.Image = Properties.Resources.red_ghost;
+            yellowGhost.Image = Properties.Resources.yellow_right;
+            pinkGhost.Image = Properties.Resources.pink_left;
         }
     }
 }
