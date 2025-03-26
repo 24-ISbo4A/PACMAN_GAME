@@ -1,12 +1,22 @@
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
+using System.IO;
 
 namespace PACMAN_GAME
 {
     public partial class Form1 : Form
     {
-        bool goUp, goDown, goLeft, goRight, isGameOver;
+        bool goUp, goDown, goLeft, goRight, isGameOver, isDeathAnimationPlaying, isInMenu = true;
         int score, playerSpeed, redGhostSpeed, yellowGhostSpeed, pinkGhostX;
         Random random = new Random();
+        private PictureBox deathAnimation;
+        private System.Windows.Forms.Timer deathTimer;
+        private Label gameOverLabel;
+        private Label restartLabel;
+        private PictureBox menuBackground;
+        private PictureBox menuArrow;
+        private int selectedOption = 0; // 0 - Start, 1 - Exit
 
         // Направления движения призраков (0: вверх, 1: вправо, 2: вниз, 3: влево)
         int redGhostDirection = 0;
@@ -32,26 +42,206 @@ namespace PACMAN_GAME
             this.MaximumSize = new Size(1445, 1050);
             // Устанавливаем заголовок окна
             this.Text = "Pac-Man Game";
-            resetGame();
+
+            // Инициализация фона меню
+            menuBackground = new PictureBox();
+            menuBackground.Size = new Size(1445, 1050); // Размер на весь экран
+            menuBackground.Location = new Point(0, 0); // Располагаем в левом верхнем углу
+            menuBackground.SizeMode = PictureBoxSizeMode.StretchImage;
+            menuBackground.BackColor = Color.Black; // Устанавливаем черный фон по умолчанию
+            try
+            {
+                string menuPath = @"D:\PACGAM\PACGAM\PACMAN_GAME\Resources\menu.gif";
+                if (File.Exists(menuPath))
+                {
+                    menuBackground.Image = Image.FromFile(menuPath);
+                }
+                else
+                {
+                    MessageBox.Show($"Файл menu.gif не найден по пути: {menuPath}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки меню: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            menuBackground.Visible = true;
+            this.Controls.Add(menuBackground);
+
+            // Добавляем надписи для опций меню
+            Label startLabel = new Label();
+            startLabel.Text = "PLAY";
+            startLabel.Font = new Font("Arial", 24, FontStyle.Bold);
+            startLabel.ForeColor = Color.White;
+            startLabel.AutoSize = true;
+            startLabel.Location = new Point(
+                (menuBackground.Width - startLabel.PreferredWidth) / 2, // По центру
+                menuBackground.Bottom - 200 // Снизу
+            );
+            startLabel.BackColor = Color.Transparent;
+            startLabel.Parent = menuBackground;
+            this.Controls.Add(startLabel);
+
+            Label exitLabel = new Label();
+            exitLabel.Text = "QUIT";
+            exitLabel.Font = new Font("Arial", 24, FontStyle.Bold);
+            exitLabel.ForeColor = Color.White;
+            exitLabel.AutoSize = true;
+            exitLabel.Location = new Point(
+                (menuBackground.Width - exitLabel.PreferredWidth) / 2, // По центру
+                menuBackground.Bottom - 100 // Снизу, под PLAY
+            );
+            exitLabel.BackColor = Color.Transparent;
+            exitLabel.Parent = menuBackground;
+            this.Controls.Add(exitLabel);
+
+            // Скрываем все игровые элементы, кроме счёта
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x != menuBackground && x != menuArrow)
+                {
+                    x.Visible = false;
+                }
+            }
+            txtScore.Visible = false; // Скрываем счёт в меню
+
+            // Инициализация стрелки меню
+            menuArrow = new PictureBox();
+            menuArrow.Size = new Size(60, 60);
+            menuArrow.SizeMode = PictureBoxSizeMode.StretchImage;
+            menuArrow.BackColor = Color.Red; // Устанавливаем красный цвет по умолчанию
+            try
+            {
+                string arrowPath = @"D:\PACGAM\PACGAM\PACMAN_GAME\Resources\arrow.png";
+                if (File.Exists(arrowPath))
+                {
+                    menuArrow.Image = Image.FromFile(arrowPath);
+                }
+                else
+                {
+                    MessageBox.Show($"Файл arrow.png не найден по пути: {arrowPath}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки стрелки: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            menuArrow.Visible = true;
+            this.Controls.Add(menuArrow);
+            menuArrow.BringToFront();
+
+            // Устанавливаем начальную позицию стрелки
+            UpdateArrowPosition();
+
+            // Инициализация анимации смерти
+            deathAnimation = new PictureBox();
+            deathAnimation.Size = new Size(40, 40);
+            deathAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
+            deathAnimation.Visible = false;
+            this.Controls.Add(deathAnimation);
+
+            // Инициализация таймера смерти
+            deathTimer = new System.Windows.Forms.Timer();
+            deathTimer.Interval = 1200; // 1 секунда
+            deathTimer.Tick += DeathTimer_Tick;
+
+            // Инициализация метки Game Over
+            gameOverLabel = new Label();
+            gameOverLabel.Text = "GAME OVER";
+            gameOverLabel.Font = new Font("Arial", 48, FontStyle.Bold);
+            gameOverLabel.ForeColor = Color.Red;
+            gameOverLabel.AutoSize = true;
+            gameOverLabel.Visible = false;
+            this.Controls.Add(gameOverLabel);
+
+            // Инициализация метки Restart
+            restartLabel = new Label();
+            restartLabel.Text = "Restart - R";
+            restartLabel.Font = new Font("Arial", 24, FontStyle.Bold);
+            restartLabel.ForeColor = Color.Red;
+            restartLabel.AutoSize = true;
+            restartLabel.Visible = false;
+            this.Controls.Add(restartLabel);
         }
 
-        private void label1_Click(object sender, EventArgs e) { }
+        private void UpdateArrowPosition()
+        {
+            // Позиции для стрелки
+            int baseX = (menuBackground.Width / 2) + 250; // Стрелка справа
+            int baseY = menuBackground.Bottom - 290; // Поднимаем стрелку выше
+            int spacing = 100; // Расстояние между опциями
 
-        private void Form1_Load(object sender, EventArgs e) { }
-
-        private void pictureBox5_Click(object sender, EventArgs e) { }
-
-        private void pictureBox8_Click(object sender, EventArgs e) { }
+            menuArrow.Location = new Point(baseX, baseY + (selectedOption * spacing));
+            menuArrow.BringToFront();
+        }
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
+            // Проверяем нажатие ESC в любой момент
+            if (e.KeyCode == Keys.Escape)
+            {
+                Application.Exit();
+                return;
+            }
+
+            if (isInMenu)
+            {
+                if (e.KeyCode == Keys.Up)
+                {
+                    selectedOption = (selectedOption - 1 + 2) % 2;
+                    UpdateArrowPosition();
+                }
+                else if (e.KeyCode == Keys.Down)
+                {
+                    selectedOption = (selectedOption + 1) % 2;
+                    UpdateArrowPosition();
+                }
+                else if (e.KeyCode == Keys.Enter)
+                {
+                    if (selectedOption == 0)
+                    {
+                        // Start Game
+                        isInMenu = false;
+                        menuBackground.Visible = false;
+                        menuArrow.Visible = false;
+                        // Скрываем все элементы меню
+                        foreach (Control x in this.Controls)
+                        {
+                            if (x is Label && x.Parent == menuBackground)
+                            {
+                                x.Visible = false;
+                            }
+                        }
+                        // Скрываем кнопки PLAY и QUIT
+                        foreach (Control x in this.Controls)
+                        {
+                            if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
+                            {
+                                x.Visible = false;
+                            }
+                        }
+                        txtScore.Visible = true; // Показываем счёт при старте игры
+                        resetGame();
+                    }
+                    else if (selectedOption == 1)
+                    {
+                        // Exit
+                        Application.Exit();
+                    }
+                }
+                return;
+            }
+
             // Проверяем нажатие клавиши R для рестарта
             if (e.KeyCode == Keys.R)
             {
-                gameTimer.Stop();
+                gameOverLabel.Visible = false;
+                restartLabel.Visible = false;
                 resetGame();
                 return;
             }
+
+            if (isGameOver) return; // Если игра окончена, не обрабатываем другие клавиши
 
             // Устанавливаем следующее направление движения
             if (e.KeyCode == Keys.Up)
@@ -180,7 +370,7 @@ namespace PACMAN_GAME
             if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
             if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
             if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
-            
+
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
@@ -282,42 +472,130 @@ namespace PACMAN_GAME
 
             isGameOver = false;
 
+            // Показываем все элементы игры
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x != deathAnimation && x != menuBackground && x != menuArrow)
+                {
+                    x.Visible = true;
+                }
+            }
+            txtScore.Visible = true;
+
+            // Показываем Пакмана
+            pacman.Visible = true;
+
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
             pacman.Top = 47;
 
             // Фиксированные позиции спавна призраков
             redGhost.Left = 710;
-            redGhost.Top = 420;
+            redGhost.Top = 500;
 
             yellowGhost.Left = 710;
-            yellowGhost.Top = 420;
+            yellowGhost.Top = 500;
 
             pinkGhost.Left = 710;
-            pinkGhost.Top = 420;
+            pinkGhost.Top = 500;
 
             // Случайные начальные направления для призраков
             redGhostDirection = random.Next(4);
             yellowGhostDirection = random.Next(4);
             pinkGhostDirection = random.Next(4);
 
+            // Восстанавливаем все монеты
             foreach (Control x in this.Controls)
             {
-                if (x is PictureBox)
+                if (x is PictureBox && (string)x.Tag == "coin")
                 {
                     x.Visible = true;
                 }
             }
 
+            // Скрываем все элементы смерти
+            deathAnimation.Visible = false;
+            gameOverLabel.Visible = false;
+            restartLabel.Visible = false;
+
+            // Устанавливаем начальное направление Пакмана
+            pacmanDirection = 1;
+            nextDirection = 1;
+            pacman.Image = Properties.Resources.right;
+
             gameTimer.Start();
+        }
+
+        private void DeathTimer_Tick(object sender, EventArgs e)
+        {
+            deathTimer.Stop();
+            deathAnimation.Visible = false;
+            ShowGameOverScreen();
+        }
+
+        private void ShowGameOverScreen()
+        {
+            // Скрываем все элементы игры
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x != deathAnimation && x != menuBackground && x != menuArrow)
+                {
+                    x.Visible = false;
+                }
+            }
+            txtScore.Visible = false;
+
+            // Центрируем надпись Game Over
+            gameOverLabel.Location = new Point(
+                (this.ClientSize.Width - gameOverLabel.Width) / 2,
+                (this.ClientSize.Height - gameOverLabel.Height) / 2 - 100
+            );
+            gameOverLabel.Visible = true;
+            gameOverLabel.BringToFront();
+
+            // Размещаем надпись Restart под Game Over
+            restartLabel.Location = new Point(
+                (this.ClientSize.Width - restartLabel.Width) / 2,
+                gameOverLabel.Bottom + 50
+            );
+            restartLabel.Visible = true;
+            restartLabel.BringToFront();
         }
 
         private void gameOver(string message)
         {
-            isGameOver = true;
             gameTimer.Stop();
-            MessageBox.Show(message);
-            resetGame();
+            isGameOver = true;
+
+            // Скрываем все элементы игры
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && x != deathAnimation && x != menuBackground && x != menuArrow)
+                {
+                    x.Visible = false;
+                }
+            }
+            txtScore.Visible = false;
+
+            // Показываем анимацию смерти
+            try
+            {
+                deathAnimation.Image = Image.FromFile(@"D:\PACGAM\PACGAM\PACMAN_GAME\Resources\pacman-deathfone.gif");
+            }
+            catch
+            {
+                // Если гифка не найдена, используем последнее изображение пакмана
+                deathAnimation.Image = pacman.Image;
+            }
+            deathAnimation.Location = new Point(pacman.Left, pacman.Top);
+            deathAnimation.Size = new Size(45, 60);
+            deathAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
+            deathAnimation.BackColor = Color.Transparent;
+            deathAnimation.BringToFront();
+            deathAnimation.Visible = true;
+
+            // Запускаем таймер для показа Game Over через 1.2 секунды
+            deathTimer.Start();
         }
 
         /// <summary>
@@ -343,10 +621,15 @@ namespace PACMAN_GAME
             return false;
         }
 
-        private void pictureBox166_Click(object sender, EventArgs e)
-        {
+        private void label1_Click(object sender, EventArgs e) { }
 
-        }
+        private void Form1_Load(object sender, EventArgs e) { }
+
+        private void pictureBox5_Click(object sender, EventArgs e) { }
+
+        private void pictureBox8_Click(object sender, EventArgs e) { }
+
+        private void pictureBox166_Click(object sender, EventArgs e) { }
     }
 }
 

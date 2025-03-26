@@ -77,4 +77,7 @@
   <data name="red_ghost" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\red_ghost.png;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
   </data>
+  <data name="pacman_deathfone" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pacman-deathfone.gif;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
+  </data>
 </root>
