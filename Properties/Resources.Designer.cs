@@ -102,16 +102,6 @@ namespace PACMAN_GAME.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap red_ghost {
-            get {
-                object obj = ResourceManager.GetObject("red_ghost", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap red_left {
             get {
                 object obj = ResourceManager.GetObject("red_left", resourceCulture);

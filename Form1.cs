@@ -397,7 +397,7 @@ namespace PACMAN_GAME
             isFearMode = false;
             fearModeTimer.Stop();
             // Reset ghost images to normal (placeholder)
-            redGhost.Image = Properties.Resources.red_ghost;
+            redGhost.Image = Properties.Resources.red_left;
             yellowGhost.Image = Properties.Resources.yellow_right;
             pinkGhost.Image = Properties.Resources.pink_left;
         }
