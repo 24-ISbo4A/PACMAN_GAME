@@ -365,6 +365,11 @@ namespace PACMAN_GAME
             isYellowGhostEaten = false;
             isPinkGhostEaten = false;
 
+            // Reset ghost images to normal state
+            redGhost.Image = Properties.Resources.red_left;
+            yellowGhost.Image = Properties.Resources.yellow_right;
+            pinkGhost.Image = Properties.Resources.pink_left;
+
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
             pacman.Top = 47;
@@ -391,6 +396,10 @@ namespace PACMAN_GAME
                     x.Visible = true;
                 }
             }
+
+            // Make sure timers are stopped and reset
+            fearModeTimer.Stop();
+            flickerTimer.Stop();
 
             gameTimer.Start();
         }
