@@ -993,13 +993,13 @@
             // pictureBox52
             // 
             pictureBox52.Image = global::PACMAN_GAME.Properties.Resources.moneta;
-            pictureBox52.Location = new System.Drawing.Point(307, 519);
+            pictureBox52.Location = new System.Drawing.Point(307, 504);
             pictureBox52.Name = "pictureBox52";
-            pictureBox52.Size = new System.Drawing.Size(43, 41);
+            pictureBox52.Size = new System.Drawing.Size(59, 55);
             pictureBox52.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox52.TabIndex = 59;
             pictureBox52.TabStop = false;
-            pictureBox52.Tag = "coin";
+            pictureBox52.Tag = "largeCoin";
             // 
             // pictureBox53
             // 
@@ -1645,13 +1645,13 @@
             // pictureBox112
             // 
             pictureBox112.Image = global::PACMAN_GAME.Properties.Resources.moneta;
-            pictureBox112.Location = new System.Drawing.Point(1102, 519);
+            pictureBox112.Location = new System.Drawing.Point(1102, 507);
             pictureBox112.Name = "pictureBox112";
-            pictureBox112.Size = new System.Drawing.Size(43, 41);
+            pictureBox112.Size = new System.Drawing.Size(59, 55);
             pictureBox112.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox112.TabIndex = 120;
             pictureBox112.TabStop = false;
-            pictureBox112.Tag = "coin";
+            pictureBox112.Tag = "largeCoin";
             // 
             // pictureBox113
             // 
@@ -2027,13 +2027,13 @@
             // pictureBox147
             // 
             pictureBox147.Image = global::PACMAN_GAME.Properties.Resources.moneta;
-            pictureBox147.Location = new System.Drawing.Point(723, 649);
+            pictureBox147.Location = new System.Drawing.Point(715, 647);
             pictureBox147.Name = "pictureBox147";
-            pictureBox147.Size = new System.Drawing.Size(43, 41);
+            pictureBox147.Size = new System.Drawing.Size(59, 55);
             pictureBox147.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             pictureBox147.TabIndex = 154;
             pictureBox147.TabStop = false;
-            pictureBox147.Tag = "coin";
+            pictureBox147.Tag = "largeCoin";
             // 
             // pictureBox148
             // 
@@ -2730,7 +2730,7 @@
         private PictureBox pictureBox49;
         private PictureBox pictureBox50;
         private PictureBox pictureBox51;
-        private PictureBox pictureBox52;
+        private System.Windows.Forms.PictureBox pictureBox52;
         private PictureBox pictureBox53;
         private PictureBox pictureBox54;
         private PictureBox pictureBox55;
@@ -2791,7 +2791,7 @@
         private PictureBox pictureBox109;
         private PictureBox pictureBox110;
         private PictureBox pictureBox111;
-        private PictureBox pictureBox112;
+        private System.Windows.Forms.PictureBox pictureBox112;
         private PictureBox pictureBox113;
         private PictureBox pictureBox114;
         private PictureBox pictureBox115;
@@ -2826,7 +2826,7 @@
         private PictureBox pictureBox144;
         private PictureBox pictureBox145;
         private PictureBox pictureBox146;
-        private PictureBox pictureBox147;
+        private System.Windows.Forms.PictureBox pictureBox147;
         private PictureBox pictureBox148;
         private PictureBox pictureBox149;
         private PictureBox pictureBox150;

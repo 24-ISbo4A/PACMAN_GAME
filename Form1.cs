@@ -264,7 +264,7 @@ namespace PACMAN_GAME
             CheckGhostCollision(yellowGhost);
             CheckGhostCollision(pinkGhost);
 
-            if (score == 127+200)
+            if (score >= 300)
             {
                 gameOver("You Win!");
             }
