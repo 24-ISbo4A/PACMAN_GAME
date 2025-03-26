@@ -386,5 +386,8 @@ InteropTests/NativeTests/out
 # **/ScratchProject/
 # **/ScratchProjectWithInternals/
 
+# custom
+obj/
+
 # Custom changes
 obj/Debug/
