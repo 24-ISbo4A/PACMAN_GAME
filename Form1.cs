@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
+using System;
 
 namespace PACMAN_GAME
 {
@@ -24,8 +25,16 @@ namespace PACMAN_GAME
 
         // Add a new variable to track fear mode
         bool isFearMode = false;
-        int fearModeDuration = 5000; // Duration in milliseconds
+        int fearModeDuration = 10000; // Duration in milliseconds (10 seconds)
         Timer fearModeTimer = new Timer();
+        Timer flickerTimer = new Timer();
+        bool isFlickering = false;
+        DateTime fearModeStartTime;
+
+        // Track each ghost's state separately
+        private bool isRedGhostEaten = false;
+        private bool isYellowGhostEaten = false;
+        private bool isPinkGhostEaten = false;
 
         public Form1()
         {
@@ -39,8 +48,36 @@ namespace PACMAN_GAME
             this.MaximumSize = new Size(1445, 1050);
             // Устанавливаем заголовок окна
             this.Text = "Pac-Man Game";
-            fearModeTimer.Interval = fearModeDuration;
-            fearModeTimer.Tick += EndFearMode;
+            fearModeTimer.Interval = 100; // Check every 100ms
+            fearModeTimer.Tick += (s, e) =>
+            {
+                if (isFearMode)
+                {
+                    TimeSpan elapsed = DateTime.Now - fearModeStartTime;
+                    if (elapsed.TotalMilliseconds >= fearModeDuration)
+                    {
+                        EndFearMode(s, e);
+                    }
+                }
+            };
+            
+            // Setup flicker timer
+            flickerTimer.Interval = 200; // Flicker every 200ms
+            flickerTimer.Tick += (s, e) =>
+            {
+                if (isFearMode)
+                {
+                    TimeSpan elapsed = DateTime.Now - fearModeStartTime;
+                    if (elapsed.TotalMilliseconds >= fearModeDuration - 3000) // Start flickering when 3 seconds remain
+                    {
+                        redGhost.Visible = !redGhost.Visible;
+                        yellowGhost.Visible = !yellowGhost.Visible;
+                        pinkGhost.Visible = !pinkGhost.Visible;
+                    }
+                }
+            };
+            flickerTimer.Start();
+            
             resetGame();
         }
 
@@ -104,7 +141,7 @@ namespace PACMAN_GAME
                 {
                     if (pacman.Bounds.IntersectsWith(x.Bounds))
                     {
-                        score += 50; // Large coin score
+                        score += 20; // Large coin score
                         x.Visible = false;
                         ActivateFearMode();
                     }
@@ -223,14 +260,11 @@ namespace PACMAN_GAME
             MoveGhost(pinkGhost, ref pinkGhostDirection, pinkGhostX);
 
             // Проверка столкновения Пакмана с призраками
-            if (pacman.Bounds.IntersectsWith(redGhost.Bounds) ||
-                pacman.Bounds.IntersectsWith(yellowGhost.Bounds) ||
-                pacman.Bounds.IntersectsWith(pinkGhost.Bounds))
-            {
-                gameOver("You Died!");
-            }
+            CheckGhostCollision(redGhost);
+            CheckGhostCollision(yellowGhost);
+            CheckGhostCollision(pinkGhost);
 
-            if (score == 127)
+            if (score == 127+200)
             {
                 gameOver("You Win!");
             }
@@ -240,61 +274,72 @@ namespace PACMAN_GAME
         {
             if (isFearMode)
             {
-                // Move away from Pacman
-                if (ghost.Left < pacman.Left) direction = 3; // Move left
-                else if (ghost.Left > pacman.Left) direction = 1; // Move right
-                if (ghost.Top < pacman.Top) direction = 0; // Move up
-                else if (ghost.Top > pacman.Top) direction = 2; // Move down
+                // Only double speed if the ghost hasn't been eaten
+                bool isGhostEaten = false;
+                if (ghost == redGhost) isGhostEaten = isRedGhostEaten;
+                else if (ghost == yellowGhost) isGhostEaten = isYellowGhostEaten;
+                else if (ghost == pinkGhost) isGhostEaten = isPinkGhostEaten;
+
+                if (!isGhostEaten)
+                {
+                    speed *= 2; // Double the speed during fear mode
+                }
+                
+                // Randomly change direction more frequently during fear mode
+                if (random.Next(50) == 0) // Changed from 100 to 50 for more frequent direction changes
+                {
+                    direction = random.Next(4); // 0-3 for four directions
+                }
             }
             else
             {
-                // Случайно меняем направление каждые 100 тиков таймера
+                // Randomly change direction every 100 ticks
                 if (random.Next(100) == 0)
                 {
-                    direction = random.Next(4); // 0-3 для четырех направлений
+                    direction = random.Next(4); // 0-3 for four directions
                 }
+            }
 
-                int newLeft = ghost.Left;
-                int newTop = ghost.Top;
+            int newLeft = ghost.Left;
+            int newTop = ghost.Top;
 
-                switch (direction)
+            switch (direction)
+            {
+                case 0: // вверх
+                    newTop -= speed;
+                    break;
+                case 1: // вправо
+                    newLeft += speed;
+                    break;
+                case 2: // вниз
+                    newTop += speed;
+                    break;
+                case 3: // влево
+                    newLeft -= speed;
+                    break;
+            }
+
+            // Проверяем столкновение со стенами
+            bool canMove = true;
+            foreach (Control x in this.Controls)
+            {
+                if (x is PictureBox && (string)x.Tag == "wall")
                 {
-                    case 0: // вверх
-                        newTop -= speed;
-                        break;
-                    case 1: // вправо
-                        newLeft += speed;
-                        break;
-                    case 2: // вниз
-                        newTop += speed;
-                        break;
-                    case 3: // влево
-                        newLeft -= speed;
-                        break;
-                }
-
-                // Проверяем столкновение со стенами
-                bool canMove = true;
-                foreach (Control x in this.Controls)
-                {
-                    if (x is PictureBox && (string)x.Tag == "wall")
+                    Rectangle newGhostBounds = new Rectangle(newLeft, newTop, ghost.Width, ghost.Height);
+                    if (newGhostBounds.IntersectsWith(x.Bounds))
                     {
-                        Rectangle newGhostBounds = new Rectangle(newLeft, newTop, ghost.Width, ghost.Height);
-                        if (newGhostBounds.IntersectsWith(x.Bounds))
-                        {
-                            canMove = false;
-                            direction = random.Next(4); // Меняем направление при столкновении
-                            break;
-                        }
+                        canMove = false;
+                        direction = random.Next(4); // Меняем направление при столкновении
+                        break;
                     }
                 }
+            }
 
-                // Если движение возможно, обновляем позицию призрака
-                if (canMove)
-                {
-                    ghost.Left = newLeft;
-                    ghost.Top = newTop;
-                }
+            // Если движение возможно, обновляем позицию призрака
+            if (canMove)
+            {
+                ghost.Left = newLeft;
+                ghost.Top = newTop;
             }
 
             // Проверка выхода за границы экрана
@@ -315,6 +360,10 @@ namespace PACMAN_GAME
             playerSpeed = 12;
 
             isGameOver = false;
+            isFearMode = false;
+            isRedGhostEaten = false;
+            isYellowGhostEaten = false;
+            isPinkGhostEaten = false;
 
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
@@ -385,6 +434,7 @@ namespace PACMAN_GAME
         private void ActivateFearMode()
         {
             isFearMode = true;
+            fearModeStartTime = DateTime.Now; // Record when fear mode started
             fearModeTimer.Start();
             // Change ghost images to fear mode (placeholder)
             redGhost.Image = Properties.Resources.scared;
@@ -396,10 +446,86 @@ namespace PACMAN_GAME
         {
             isFearMode = false;
             fearModeTimer.Stop();
+            flickerTimer.Stop();
             // Reset ghost images to normal (placeholder)
             redGhost.Image = Properties.Resources.red_left;
             yellowGhost.Image = Properties.Resources.yellow_right;
             pinkGhost.Image = Properties.Resources.pink_left;
+            // Make sure all ghosts are visible
+            redGhost.Visible = true;
+            yellowGhost.Visible = true;
+            pinkGhost.Visible = true;
+            // Reset ghost states
+            isRedGhostEaten = false;
+            isYellowGhostEaten = false;
+            isPinkGhostEaten = false;
+        }
+
+        private void CheckGhostCollision(PictureBox ghost)
+        {
+            if (pacman.Bounds.IntersectsWith(ghost.Bounds))
+            {
+                bool isGhostEaten = false;
+                if (ghost == redGhost) isGhostEaten = isRedGhostEaten;
+                else if (ghost == yellowGhost) isGhostEaten = isYellowGhostEaten;
+                else if (ghost == pinkGhost) isGhostEaten = isPinkGhostEaten;
+
+                if (isFearMode && !isGhostEaten)
+                {
+                    // Only eat ghost if it's in fear mode and hasn't been eaten yet
+                    if (ghost == redGhost)
+                    {
+                        EatGhost(ghost);
+                        isRedGhostEaten = true;
+                    }
+                    else if (ghost == yellowGhost)
+                    {
+                        EatGhost(ghost);
+                        isYellowGhostEaten = true;
+                    }
+                    else if (ghost == pinkGhost)
+                    {
+                        EatGhost(ghost);
+                        isPinkGhostEaten = true;
+                    }
+                }
+                else if (isGhostEaten || !isFearMode)
+                {
+                    // Ghost kills player if it's either respawned or not in fear mode
+                    gameOver("You Died!");
+                }
+            }
+        }
+
+        private void EatGhost(PictureBox ghost)
+        {
+            score += 50; // Points for eating a ghost
+            ghost.Visible = false;
+            RespawnGhost(ghost);
+        }
+
+        private void RespawnGhost(PictureBox ghost)
+        {
+            ghost.Visible = true;
+            ghost.Left = 710; // Respawn position
+            ghost.Top = 420;
+            
+            // Reset ghost image and make it dangerous immediately
+            if (ghost == redGhost)
+            {
+                ghost.Image = Properties.Resources.red_left;
+                redGhostSpeed = 10; // Reset speed to normal
+            }
+            else if (ghost == yellowGhost)
+            {
+                ghost.Image = Properties.Resources.yellow_right;
+                yellowGhostSpeed = 10; // Reset speed to normal
+            }
+            else if (ghost == pinkGhost)
+            {
+                ghost.Image = Properties.Resources.pink_left;
+                pinkGhostX = 10; // Reset speed to normal
+            }
         }
     }
 }
