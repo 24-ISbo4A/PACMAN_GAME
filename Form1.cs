@@ -22,6 +22,8 @@ namespace PACMAN_GAME
         int pacmanDirection = 1; // 0: вверх, 1: вправо, 2: вниз, 3: влево
         // Следующее запрошенное направление движения
         int nextDirection = 1;
+        
+        // klsdjfklsdjklf
 
         // Add a new variable to track fear mode
         bool isFearMode = false;
