@@ -259,6 +259,11 @@ namespace PACMAN_GAME
             MoveGhost(yellowGhost, ref yellowGhostDirection, yellowGhostSpeed);
             MoveGhost(pinkGhost, ref pinkGhostDirection, pinkGhostX);
 
+            // Обеспечиваем, что призраки отображаются поверх монет
+            redGhost.BringToFront();
+            yellowGhost.BringToFront();
+            pinkGhost.BringToFront();
+
             // Проверка столкновения Пакмана с призраками
             CheckGhostCollision(redGhost);
             CheckGhostCollision(yellowGhost);
@@ -275,7 +280,7 @@ namespace PACMAN_GAME
             if (isFearMode)
             {
                 // В режиме страха призраки движутся медленнее
-                speed = 3; // Медленная скорость во время страха
+                speed = 4; // Медленная скорость во время страха
                 
                 // Randomly change direction more frequently during fear mode
                 if (random.Next(50) == 0)
