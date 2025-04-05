@@ -274,8 +274,8 @@ namespace PACMAN_GAME
         {
             if (isFearMode)
             {
-                // В режиме страха призраки движутся со скоростью Пакмана
-                speed = 5; // Такая же скорость как у Пакмана
+                // В режиме страха призраки движутся медленнее
+                speed = 3; // Медленная скорость во время страха
                 
                 // Randomly change direction more frequently during fear mode
                 if (random.Next(50) == 0)
