@@ -871,7 +871,7 @@
             // 
             // pictureBox41
             // 
-            pictureBox41.Image = global::PACMAN_GAME.Properties.Resources.moneta;
+            pictureBox41.Image = global::PACMAN_GAME.Properties.Resources.big_coin;
             pictureBox41.Location = new System.Drawing.Point(650, 190);
             pictureBox41.Name = "pictureBox41";
             pictureBox41.Size = new System.Drawing.Size(59, 55);
@@ -992,7 +992,7 @@
             // 
             // pictureBox52
             // 
-            pictureBox52.Image = global::PACMAN_GAME.Properties.Resources.moneta;
+            pictureBox52.Image = global::PACMAN_GAME.Properties.Resources.big_coin;
             pictureBox52.Location = new System.Drawing.Point(307, 504);
             pictureBox52.Name = "pictureBox52";
             pictureBox52.Size = new System.Drawing.Size(59, 55);
@@ -1644,7 +1644,7 @@
             // 
             // pictureBox112
             // 
-            pictureBox112.Image = global::PACMAN_GAME.Properties.Resources.moneta;
+            pictureBox112.Image = global::PACMAN_GAME.Properties.Resources.big_coin;
             pictureBox112.Location = new System.Drawing.Point(1102, 507);
             pictureBox112.Name = "pictureBox112";
             pictureBox112.Size = new System.Drawing.Size(59, 55);
@@ -2026,7 +2026,7 @@
             // 
             // pictureBox147
             // 
-            pictureBox147.Image = global::PACMAN_GAME.Properties.Resources.moneta;
+            pictureBox147.Image = global::PACMAN_GAME.Properties.Resources.big_coin;
             pictureBox147.Location = new System.Drawing.Point(715, 647);
             pictureBox147.Name = "pictureBox147";
             pictureBox147.Size = new System.Drawing.Size(59, 55);
