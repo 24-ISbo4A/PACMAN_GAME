@@ -446,9 +446,9 @@ namespace PACMAN_GAME
             fearModeStartTime = DateTime.Now; // Record when fear mode started
             fearModeTimer.Start();
             // Change ghost images to fear mode (placeholder)
-            redGhost.Image = Properties.Resources.scared;
-            yellowGhost.Image = Properties.Resources.scared;
-            pinkGhost.Image = Properties.Resources.scared;
+            redGhost.Image = Properties.Resources.scared_ghost_anim;
+            yellowGhost.Image = Properties.Resources.scared_ghost_anim;
+            pinkGhost.Image = Properties.Resources.scared_ghost_anim;
         }
 
         private void EndFearMode(object sender, EventArgs e)

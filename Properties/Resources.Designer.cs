@@ -62,6 +62,16 @@ namespace PACMAN_GAME.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap big_coin {
+            get {
+                object obj = ResourceManager.GetObject("big_coin", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap down {
             get {
                 object obj = ResourceManager.GetObject("down", resourceCulture);
@@ -122,9 +132,9 @@ namespace PACMAN_GAME.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap scared {
+        internal static System.Drawing.Bitmap scared_ghost_anim {
             get {
-                object obj = ResourceManager.GetObject("scared", resourceCulture);
+                object obj = ResourceManager.GetObject("scared_ghost_anim", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
