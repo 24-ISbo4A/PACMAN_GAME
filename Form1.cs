@@ -259,12 +259,17 @@ namespace PACMAN_GAME
             MoveGhost(yellowGhost, ref yellowGhostDirection, yellowGhostSpeed);
             MoveGhost(pinkGhost, ref pinkGhostDirection, pinkGhostX);
 
+            // Обеспечиваем, что призраки отображаются поверх монет
+            redGhost.BringToFront();
+            yellowGhost.BringToFront();
+            pinkGhost.BringToFront();
+
             // Проверка столкновения Пакмана с призраками
             CheckGhostCollision(redGhost);
             CheckGhostCollision(yellowGhost);
             CheckGhostCollision(pinkGhost);
 
-            if (score >= 300)
+            if (score >= 258)
             {
                 gameOver("You Win!");
             }
@@ -274,30 +279,24 @@ namespace PACMAN_GAME
         {
             if (isFearMode)
             {
-                // Only double speed if the ghost hasn't been eaten
-                bool isGhostEaten = false;
-                if (ghost == redGhost) isGhostEaten = isRedGhostEaten;
-                else if (ghost == yellowGhost) isGhostEaten = isYellowGhostEaten;
-                else if (ghost == pinkGhost) isGhostEaten = isPinkGhostEaten;
-
-                if (!isGhostEaten)
-                {
-                    speed *= 2; // Double the speed during fear mode
-                }
+                // В режиме страха призраки движутся медленнее
+                speed = 4; // Медленная скорость во время страха
                 
                 // Randomly change direction more frequently during fear mode
-                if (random.Next(50) == 0) // Changed from 100 to 50 for more frequent direction changes
+                if (random.Next(50) == 0)
                 {
-                    direction = random.Next(4); // 0-3 for four directions
+                    direction = random.Next(4);
                 }
+            }
+            else if (score >= 258) // На втором уровне
+            {
+                // На втором уровне призраки движутся со скоростью 80% от базовой
+                speed = 9; // 80% от базовой скорости (8)
             }
             else
             {
-                // Randomly change direction every 100 ticks
-                if (random.Next(100) == 0)
-                {
-                    direction = random.Next(4); // 0-3 for four directions
-                }
+                // На первом уровне призраки движутся со скоростью 75% от базовой
+                speed = 8; // 75% от базовой скорости (8)
             }
 
             int newLeft = ghost.Left;
@@ -354,10 +353,11 @@ namespace PACMAN_GAME
             txtScore.Text = "Score: 0";
             score = 0;
 
-            redGhostSpeed = 10;
-            yellowGhostSpeed = 10;
-            pinkGhostX = 10;
-            playerSpeed = 12;
+            // Изменяем базовые скорости
+            redGhostSpeed = 8; // 75% от базовой скорости (8)
+            yellowGhostSpeed = 8;
+            pinkGhostX = 8;
+            playerSpeed = 12; // 150% от базовой скорости (8)
 
             isGameOver = false;
             isFearMode = false;
@@ -516,24 +516,24 @@ namespace PACMAN_GAME
         private void RespawnGhost(PictureBox ghost)
         {
             ghost.Visible = true;
-            ghost.Left = 710; // Respawn position
+            ghost.Left = 710;
             ghost.Top = 420;
             
-            // Reset ghost image and make it dangerous immediately
+            // Reset ghost image and speed based on current level
             if (ghost == redGhost)
             {
                 ghost.Image = Properties.Resources.red_left;
-                redGhostSpeed = 10; // Reset speed to normal
+                redGhostSpeed = score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
             }
             else if (ghost == yellowGhost)
             {
                 ghost.Image = Properties.Resources.yellow_right;
-                yellowGhostSpeed = 10; // Reset speed to normal
+                yellowGhostSpeed = score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
             }
             else if (ghost == pinkGhost)
             {
                 ghost.Image = Properties.Resources.pink_left;
-                pinkGhostX = 10; // Reset speed to normal
+                pinkGhostX = score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
             }
         }
     }
