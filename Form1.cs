@@ -31,8 +31,10 @@ namespace PACMAN_GAME
 
         // Размер одной клетки сетки
         const int GRID_SIZE = 40;
+
         // Текущее направление движения Пакмана
         int pacmanDirection = 1; // 0: вверх, 1: вправо, 2: вниз, 3: влево
+
         // Следующее запрошенное направление движения
         int nextDirection = 1;
 
@@ -48,7 +50,7 @@ namespace PACMAN_GAME
         private bool isRedGhostEaten = false;
         private bool isYellowGhostEaten = false;
         private bool isPinkGhostEaten = false;
-        
+
         // For death and main menus, animations
         private PictureBox deathAnimation;
         private System.Windows.Forms.Timer deathTimer;
@@ -82,7 +84,7 @@ namespace PACMAN_GAME
             menuBackground.BackColor = System.Drawing.Color.Black; // Устанавливаем черный фон по умолчанию
 
             menuBackground.Image = Properties.Resources.main_menu;
-            
+
             menuBackground.Visible = true;
             this.Controls.Add(menuBackground);
 
@@ -121,16 +123,17 @@ namespace PACMAN_GAME
                     x.Visible = false;
                 }
             }
+
             txtScore.Visible = false; // Скрываем счёт в меню
 
             // Инициализация стрелки меню
             menuArrow = new PictureBox();
             menuArrow.Size = new Size(60, 60);
             menuArrow.SizeMode = PictureBoxSizeMode.StretchImage;
-            menuArrow.BackColor = ColorTranslator.FromHtml("#0B0102") ; // Устанавливаем красный цвет по умолчанию
-            
+            menuArrow.BackColor = ColorTranslator.FromHtml("#0B0102"); // Устанавливаем красный цвет по умолчанию
+
             menuArrow.Image = Properties.Resources.menu_arrow;
-            
+
             menuArrow.Visible = true;
             this.Controls.Add(menuArrow);
             menuArrow.BringToFront();
@@ -167,7 +170,7 @@ namespace PACMAN_GAME
             restartLabel.AutoSize = true;
             restartLabel.Visible = false;
             this.Controls.Add(restartLabel);
-            
+
             // Timres setup
             fearModeTimer.Interval = 100; // Check every 100ms
             fearModeTimer.Tick += (s, e) =>
@@ -181,7 +184,7 @@ namespace PACMAN_GAME
                     }
                 }
             };
-            
+
             // Setup flicker timer
             flickerTimer.Interval = 200; // Flicker every 200ms
             flickerTimer.Tick += (s, e) =>
@@ -198,10 +201,10 @@ namespace PACMAN_GAME
                 }
             };
             flickerTimer.Start();
-            
+
             resetGame();
         }
-        
+
         private void UpdateArrowPosition()
         {
             // Позиции для стрелки
@@ -227,12 +230,12 @@ namespace PACMAN_GAME
                 // Загружаем звуки
                 var soundFiles = new Dictionary<string, string>
                 {
-                    {"game_start", "game_start.mp3"},
-                    {"pacman_death", "pacman_death.mp3"},
-                    {"ghost_eaten", "ghost_eaten.mp3"},
-                    {"pacman_move", "pacman_move.mp3"},
-                    {"ghost_move", "phonepacman.mp3"},
-                    {"fear_mode", "pacmanghostik.mp3"}
+                    { "game_start", "game_start.mp3" },
+                    { "pacman_death", "pacman_death.mp3" },
+                    { "ghost_eaten", "ghost_eaten.mp3" },
+                    { "pacman_move", "pacman_move.mp3" },
+                    { "ghost_move", "phonepacman.mp3" },
+                    { "fear_mode", "pacmanghostik.mp3" }
                 };
 
                 foreach (var sound in soundFiles)
@@ -256,13 +259,21 @@ namespace PACMAN_GAME
             }
         }
 
-        private void label1_Click(object sender, EventArgs e) { }
+        private void label1_Click(object sender, EventArgs e)
+        {
+        }
 
-        private void Form1_Load(object sender, EventArgs e) { }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+        }
 
-        private void pictureBox5_Click(object sender, EventArgs e) { }
+        private void pictureBox5_Click(object sender, EventArgs e)
+        {
+        }
 
-        private void pictureBox8_Click(object sender, EventArgs e) { }
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+        }
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
@@ -301,6 +312,7 @@ namespace PACMAN_GAME
                                 x.Visible = false;
                             }
                         }
+
                         // Скрываем кнопки PLAY и QUIT
                         foreach (Control x in this.Controls)
                         {
@@ -309,6 +321,7 @@ namespace PACMAN_GAME
                                 x.Visible = false;
                             }
                         }
+
                         txtScore.Visible = true; // Показываем счёт при старте игры
                         resetGame();
                     }
@@ -318,9 +331,10 @@ namespace PACMAN_GAME
                         Application.Exit();
                     }
                 }
+
                 return;
             }
-            
+
             // Проверяем нажатие клавиши R для рестарта
             if (e.KeyCode == Keys.R)
             {
@@ -329,8 +343,8 @@ namespace PACMAN_GAME
                 resetGame();
                 return;
             }
-            
-            if(isGameOver) return;
+
+            if (isGameOver) return;
 
             // Устанавливаем следующее направление движения
             if (e.KeyCode == Keys.Up)
@@ -475,7 +489,7 @@ namespace PACMAN_GAME
             if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
             if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
             if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
-            
+
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
@@ -526,7 +540,7 @@ namespace PACMAN_GAME
             {
                 // В режиме страха призраки движутся медленнее
                 speed = 4; // Медленная скорость во время страха
-                
+
                 // Randomly change direction more frequently during fear mode
                 if (random.Next(50) == 0)
                 {
@@ -615,6 +629,7 @@ namespace PACMAN_GAME
 
         private void resetGame()
         {
+            StopAllSounds();
             txtScore.Text = "Score: 0";
             score = 0;
 
@@ -637,7 +652,7 @@ namespace PACMAN_GAME
             redGhost.Image = Properties.Resources.red_left;
             yellowGhost.Image = Properties.Resources.yellow_right;
             pinkGhost.Image = Properties.Resources.pink_left;
-            
+
             // Показываем все элементы игры
             foreach (Control x in this.Controls)
             {
@@ -646,11 +661,12 @@ namespace PACMAN_GAME
                     x.Visible = true;
                 }
             }
+
             txtScore.Visible = true;
-            
+
             // Показываем Пакмана
-            if(!isInMenu) pacman.Visible = true;
-            
+            if (!isInMenu) pacman.Visible = true;
+
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
             pacman.Top = 47;
@@ -672,7 +688,7 @@ namespace PACMAN_GAME
 
             foreach (Control x in this.Controls)
             {
-                if (x is PictureBox && ((string)x.Tag == "coin"  || (string)x.Tag == "big-coin" ) && !isInMenu)
+                if (x is PictureBox && ((string)x.Tag == "coin" || (string)x.Tag == "big-coin") && !isInMenu)
                 {
                     x.Visible = true;
                 }
@@ -683,7 +699,7 @@ namespace PACMAN_GAME
             flickerTimer.Stop();
             gameTimer.Stop(); // Останавливаем таймер игры
 
-            
+
             // Скрываем все элементы смерти
             deathAnimation.Visible = false;
             gameOverLabel.Visible = false;
@@ -696,7 +712,7 @@ namespace PACMAN_GAME
 
 
             // Воспроизведение звука начала игры и ожидание его окончания
-            if (sounds.ContainsKey("game_start"))
+            if (sounds.ContainsKey("game_start") && !isInMenu)
             {
                 isStartSoundPlaying = true;
                 var player = sounds["game_start"];
@@ -710,7 +726,7 @@ namespace PACMAN_GAME
                 player.Play();
             }
         }
-        
+
         private void DeathTimer_Tick(object sender, EventArgs e)
         {
             deathTimer.Stop();
@@ -728,6 +744,7 @@ namespace PACMAN_GAME
                     x.Visible = false;
                 }
             }
+
             txtScore.Visible = false;
 
             // Центрируем надпись Game Over
@@ -747,12 +764,9 @@ namespace PACMAN_GAME
             restartLabel.BringToFront();
         }
 
-        private void gameOver(string message)
-        {
-            gameTimer.Stop();
 
-            
-            // Останавливаем все звуки
+        private void StopAllSounds()
+        {
             StopMoveSound();
             StopGhostSound();
             if (sounds.ContainsKey("fear_mode") && isFearSoundPlaying)
@@ -760,12 +774,18 @@ namespace PACMAN_GAME
                 isFearSoundPlaying = false;
                 sounds["fear_mode"].Stop();
             }
+        }
+
+        private void gameOver(string message)
+        {
+            gameTimer.Stop();
+
+            // Останавливаем все звуки
+            StopAllSounds();
             
             // Воспроизведение только звука смерти Пакмана
             PlaySound("pacman_death");
             
-            MessageBox.Show(message);
-
             isGameOver = true;
 
             // Скрываем все элементы игры
