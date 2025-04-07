@@ -2,6 +2,12 @@ using System.Drawing;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 using System;
+using System.Media;
+using System.IO;
+using System.Collections.Generic;
+using System.Windows.Media;
+using MessageBox = System.Windows.Forms.MessageBox;
+using Size = System.Drawing.Size;
 
 namespace PACMAN_GAME
 {
@@ -11,6 +17,13 @@ namespace PACMAN_GAME
         int score, playerSpeed, redGhostSpeed, yellowGhostSpeed, pinkGhostX;
         Random random = new Random();
 
+        // Звуковые эффекты
+        private Dictionary<string, MediaPlayer> sounds = new();
+        private bool isMoveSoundPlaying = false;
+        private bool isGhostSoundPlaying = false;
+        private bool isStartSoundPlaying = false;
+        private bool isFearSoundPlaying = false;
+
         // Направления движения призраков (0: вверх, 1: вправо, 2: вниз, 3: влево)
         int redGhostDirection = 0;
         int yellowGhostDirection = 0;
@@ -18,16 +31,18 @@ namespace PACMAN_GAME
 
         // Размер одной клетки сетки
         const int GRID_SIZE = 40;
+
         // Текущее направление движения Пакмана
         int pacmanDirection = 1; // 0: вверх, 1: вправо, 2: вниз, 3: влево
+
         // Следующее запрошенное направление движения
         int nextDirection = 1;
 
         // Add a new variable to track fear mode
         bool isFearMode = false;
         int fearModeDuration = 10000; // Duration in milliseconds (10 seconds)
-        Timer fearModeTimer = new Timer();
-        Timer flickerTimer = new Timer();
+        Timer fearModeTimer = new();
+        Timer flickerTimer = new();
         bool isFlickering = false;
         DateTime fearModeStartTime;
 
@@ -35,7 +50,7 @@ namespace PACMAN_GAME
         private bool isRedGhostEaten = false;
         private bool isYellowGhostEaten = false;
         private bool isPinkGhostEaten = false;
-        
+
         // For death and main menus, animations
         private PictureBox deathAnimation;
         private System.Windows.Forms.Timer deathTimer;
@@ -57,16 +72,19 @@ namespace PACMAN_GAME
             this.MaximumSize = new Size(1445, 1050);
             // Устанавливаем заголовок окна
             this.Text = "Pac-Man Game";
-            
+
+            // Инициализация звуков
+            InitializeSounds();
+
             // Инициализация фона меню
             menuBackground = new PictureBox();
             menuBackground.Size = new Size(1445, 1050); // Размер на весь экран
             menuBackground.Location = new Point(0, 0); // Располагаем в левом верхнем углу
             menuBackground.SizeMode = PictureBoxSizeMode.StretchImage;
-            menuBackground.BackColor = Color.Black; // Устанавливаем черный фон по умолчанию
+            menuBackground.BackColor = System.Drawing.Color.Black; // Устанавливаем черный фон по умолчанию
 
             menuBackground.Image = Properties.Resources.main_menu;
-            
+
             menuBackground.Visible = true;
             this.Controls.Add(menuBackground);
 
@@ -74,26 +92,26 @@ namespace PACMAN_GAME
             Label startLabel = new Label();
             startLabel.Text = "PLAY";
             startLabel.Font = new Font("Arial", 24, FontStyle.Bold);
-            startLabel.ForeColor = Color.White;
+            startLabel.ForeColor = System.Drawing.Color.White;
             startLabel.AutoSize = true;
             startLabel.Location = new Point(
                 (menuBackground.Width - startLabel.PreferredWidth) / 2, // По центру
                 menuBackground.Bottom - 200 // Снизу
             );
-            startLabel.BackColor = Color.Transparent;
+            startLabel.BackColor = System.Drawing.Color.Transparent;
             startLabel.Parent = menuBackground;
             this.Controls.Add(startLabel);
 
             Label exitLabel = new Label();
             exitLabel.Text = "QUIT";
             exitLabel.Font = new Font("Arial", 24, FontStyle.Bold);
-            exitLabel.ForeColor = Color.White;
+            exitLabel.ForeColor = System.Drawing.Color.White;
             exitLabel.AutoSize = true;
             exitLabel.Location = new Point(
                 (menuBackground.Width - exitLabel.PreferredWidth) / 2, // По центру
                 menuBackground.Bottom - 100 // Снизу, под PLAY
             );
-            exitLabel.BackColor = Color.Transparent;
+            exitLabel.BackColor = System.Drawing.Color.Transparent;
             exitLabel.Parent = menuBackground;
             this.Controls.Add(exitLabel);
 
@@ -105,16 +123,17 @@ namespace PACMAN_GAME
                     x.Visible = false;
                 }
             }
+
             txtScore.Visible = false; // Скрываем счёт в меню
 
             // Инициализация стрелки меню
             menuArrow = new PictureBox();
             menuArrow.Size = new Size(60, 60);
             menuArrow.SizeMode = PictureBoxSizeMode.StretchImage;
-            menuArrow.BackColor = ColorTranslator.FromHtml("#0B0102") ; // Устанавливаем красный цвет по умолчанию
-            
+            menuArrow.BackColor = ColorTranslator.FromHtml("#0B0102"); // Устанавливаем красный цвет по умолчанию
+
             menuArrow.Image = Properties.Resources.menu_arrow;
-            
+
             menuArrow.Visible = true;
             this.Controls.Add(menuArrow);
             menuArrow.BringToFront();
@@ -138,7 +157,7 @@ namespace PACMAN_GAME
             gameOverLabel = new Label();
             gameOverLabel.Text = "GAME OVER";
             gameOverLabel.Font = new Font("Arial", 48, FontStyle.Bold);
-            gameOverLabel.ForeColor = Color.Red;
+            gameOverLabel.ForeColor = System.Drawing.Color.Red;
             gameOverLabel.AutoSize = true;
             gameOverLabel.Visible = false;
             this.Controls.Add(gameOverLabel);
@@ -147,11 +166,11 @@ namespace PACMAN_GAME
             restartLabel = new Label();
             restartLabel.Text = "Restart - R";
             restartLabel.Font = new Font("Arial", 24, FontStyle.Bold);
-            restartLabel.ForeColor = Color.Red;
+            restartLabel.ForeColor = System.Drawing.Color.Red;
             restartLabel.AutoSize = true;
             restartLabel.Visible = false;
             this.Controls.Add(restartLabel);
-            
+
             // Timres setup
             fearModeTimer.Interval = 100; // Check every 100ms
             fearModeTimer.Tick += (s, e) =>
@@ -165,7 +184,7 @@ namespace PACMAN_GAME
                     }
                 }
             };
-            
+
             // Setup flicker timer
             flickerTimer.Interval = 200; // Flicker every 200ms
             flickerTimer.Tick += (s, e) =>
@@ -182,10 +201,10 @@ namespace PACMAN_GAME
                 }
             };
             flickerTimer.Start();
-            
+
             resetGame();
         }
-        
+
         private void UpdateArrowPosition()
         {
             // Позиции для стрелки
@@ -197,13 +216,64 @@ namespace PACMAN_GAME
             menuArrow.BringToFront();
         }
 
-        private void label1_Click(object sender, EventArgs e) { }
+        private void InitializeSounds()
+        {
+            try
+            {
+                string resourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Sounds");
+                if (!Directory.Exists(resourcePath))
+                {
+                    MessageBox.Show($"Папка со звуками не найдена: {resourcePath}");
+                    return;
+                }
 
-        private void Form1_Load(object sender, EventArgs e) { }
+                // Загружаем звуки
+                var soundFiles = new Dictionary<string, string>
+                {
+                    { "game_start", "game_start.mp3" },
+                    { "pacman_death", "pacman_death.mp3" },
+                    { "ghost_eaten", "ghost_eaten.mp3" },
+                    { "pacman_move", "pacman_move.mp3" },
+                    { "ghost_move", "phonepacman.mp3" },
+                    { "fear_mode", "pacmanghostik.mp3" }
+                };
 
-        private void pictureBox5_Click(object sender, EventArgs e) { }
+                foreach (var sound in soundFiles)
+                {
+                    var filePath = Path.Combine(resourcePath, sound.Value);
+                    if (File.Exists(filePath))
+                    {
+                        var player = new MediaPlayer();
+                        player.Open(new Uri(Path.GetFullPath(filePath)));
+                        sounds[sound.Key] = player;
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Ошибка: файл {filePath} не найден");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке звуков: {ex.Message}");
+            }
+        }
 
-        private void pictureBox8_Click(object sender, EventArgs e) { }
+        private void label1_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+        }
+
+        private void pictureBox5_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+        }
 
         private void keyisdown(object sender, KeyEventArgs e)
         {
@@ -242,6 +312,7 @@ namespace PACMAN_GAME
                                 x.Visible = false;
                             }
                         }
+
                         // Скрываем кнопки PLAY и QUIT
                         foreach (Control x in this.Controls)
                         {
@@ -250,6 +321,7 @@ namespace PACMAN_GAME
                                 x.Visible = false;
                             }
                         }
+
                         txtScore.Visible = true; // Показываем счёт при старте игры
                         resetGame();
                     }
@@ -259,9 +331,10 @@ namespace PACMAN_GAME
                         Application.Exit();
                     }
                 }
+
                 return;
             }
-            
+
             // Проверяем нажатие клавиши R для рестарта
             if (e.KeyCode == Keys.R)
             {
@@ -270,8 +343,8 @@ namespace PACMAN_GAME
                 resetGame();
                 return;
             }
-            
-            if(isGameOver) return;
+
+            if (isGameOver) return;
 
             // Устанавливаем следующее направление движения
             if (e.KeyCode == Keys.Up)
@@ -298,10 +371,7 @@ namespace PACMAN_GAME
 
         private void keyisup(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Up) goUp = false;
-            if (e.KeyCode == Keys.Down) goDown = false;
-            if (e.KeyCode == Keys.Left) goLeft = false;
-            if (e.KeyCode == Keys.Right) goRight = false;
+            // Этот метод больше не нужен, но оставляем его пустым для обратной совместимости
         }
 
         private void MainGameTimer(object sender, EventArgs e)
@@ -407,6 +477,11 @@ namespace PACMAN_GAME
             {
                 pacman.Left = newLeft;
                 pacman.Top = newTop;
+                StartMoveSound();
+            }
+            else
+            {
+                StopMoveSound();
             }
 
             // Проверка выхода за границы экрана
@@ -414,7 +489,7 @@ namespace PACMAN_GAME
             if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
             if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
             if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
-            
+
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
@@ -429,9 +504,19 @@ namespace PACMAN_GAME
             }
 
             // Движение призраков
-            MoveGhost(redGhost, ref redGhostDirection, redGhostSpeed);
-            MoveGhost(yellowGhost, ref yellowGhostDirection, yellowGhostSpeed);
-            MoveGhost(pinkGhost, ref pinkGhostDirection, pinkGhostX);
+            bool anyGhostMoved = false;
+            if (MoveGhost(redGhost, ref redGhostDirection, redGhostSpeed)) anyGhostMoved = true;
+            if (MoveGhost(yellowGhost, ref yellowGhostDirection, yellowGhostSpeed)) anyGhostMoved = true;
+            if (MoveGhost(pinkGhost, ref pinkGhostDirection, pinkGhostX)) anyGhostMoved = true;
+
+            if (anyGhostMoved)
+            {
+                StartGhostSound();
+            }
+            else
+            {
+                StopGhostSound();
+            }
 
             // Обеспечиваем, что призраки отображаются поверх монет
             redGhost.BringToFront();
@@ -449,13 +534,13 @@ namespace PACMAN_GAME
             }
         }
 
-        private void MoveGhost(PictureBox ghost, ref int direction, int speed)
+        private bool MoveGhost(PictureBox ghost, ref int direction, int speed)
         {
             if (isFearMode)
             {
                 // В режиме страха призраки движутся медленнее
                 speed = 4; // Медленная скорость во время страха
-                
+
                 // Randomly change direction more frequently during fear mode
                 if (random.Next(50) == 0)
                 {
@@ -513,37 +598,61 @@ namespace PACMAN_GAME
             {
                 ghost.Left = newLeft;
                 ghost.Top = newTop;
+                return true;
             }
 
-            // Проверка выхода за границы экрана
-            if (ghost.Left < 0) ghost.Left = 0;
-            if (ghost.Left > this.ClientSize.Width - ghost.Width) ghost.Left = this.ClientSize.Width - ghost.Width;
-            if (ghost.Top < 0) ghost.Top = 0;
-            if (ghost.Top > this.ClientSize.Height - ghost.Height) ghost.Top = this.ClientSize.Height - ghost.Height;
+            return false;
+        }
+
+        private void PlaySound(string soundName)
+        {
+            // Не воспроизводим другие звуки, если играет звук начала игры
+            if (isStartSoundPlaying && soundName != "game_start")
+            {
+                return;
+            }
+
+            if (sounds.ContainsKey(soundName))
+            {
+                try
+                {
+                    var player = sounds[soundName];
+                    player.Position = TimeSpan.Zero;
+                    player.Play();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при воспроизведении звука {soundName}: {ex.Message}");
+                }
+            }
         }
 
         private void resetGame()
         {
+            StopAllSounds();
             txtScore.Text = "Score: 0";
             score = 0;
 
             // Изменяем базовые скорости
-            redGhostSpeed = 8; // 75% от базовой скорости (8)
+            redGhostSpeed = 8;
             yellowGhostSpeed = 8;
             pinkGhostX = 8;
-            playerSpeed = 12; // 150% от базовой скорости (8)
+            playerSpeed = 12;
 
             isGameOver = false;
             isFearMode = false;
             isRedGhostEaten = false;
             isYellowGhostEaten = false;
             isPinkGhostEaten = false;
+            isMoveSoundPlaying = false;
+            isGhostSoundPlaying = false;
+            isFearSoundPlaying = false;
 
             // Reset ghost images to normal state
             redGhost.Image = Properties.Resources.red_left;
             yellowGhost.Image = Properties.Resources.yellow_right;
             pinkGhost.Image = Properties.Resources.pink_left;
-            
+
             // Показываем все элементы игры
             foreach (Control x in this.Controls)
             {
@@ -552,11 +661,12 @@ namespace PACMAN_GAME
                     x.Visible = true;
                 }
             }
+
             txtScore.Visible = true;
-            
+
             // Показываем Пакмана
-            if(!isInMenu) pacman.Visible = true;
-            
+            if (!isInMenu) pacman.Visible = true;
+
             // Фиксированная позиция спавна Пакмана
             pacman.Left = 35;
             pacman.Top = 47;
@@ -578,7 +688,7 @@ namespace PACMAN_GAME
 
             foreach (Control x in this.Controls)
             {
-                if (x is PictureBox && ((string)x.Tag == "coin"  || (string)x.Tag == "big-coin" ) && !isInMenu)
+                if (x is PictureBox && ((string)x.Tag == "coin" || (string)x.Tag == "big-coin") && !isInMenu)
                 {
                     x.Visible = true;
                 }
@@ -587,7 +697,9 @@ namespace PACMAN_GAME
             // Make sure timers are stopped and reset
             fearModeTimer.Stop();
             flickerTimer.Stop();
-            
+            gameTimer.Stop(); // Останавливаем таймер игры
+
+
             // Скрываем все элементы смерти
             deathAnimation.Visible = false;
             gameOverLabel.Visible = false;
@@ -598,9 +710,23 @@ namespace PACMAN_GAME
             nextDirection = 1;
             pacman.Image = Properties.Resources.right;
 
-            gameTimer.Start();
+
+            // Воспроизведение звука начала игры и ожидание его окончания
+            if (sounds.ContainsKey("game_start") && !isInMenu)
+            {
+                isStartSoundPlaying = true;
+                var player = sounds["game_start"];
+                player.Position = TimeSpan.Zero;
+                player.MediaEnded += (s, e) =>
+                {
+                    player.MediaEnded -= (s2, e2) => { }; // Удаляем обработчик
+                    isStartSoundPlaying = false; // Отмечаем, что звук начала игры закончился
+                    gameTimer.Start(); // Запускаем игру только после окончания звука
+                };
+                player.Play();
+            }
         }
-        
+
         private void DeathTimer_Tick(object sender, EventArgs e)
         {
             deathTimer.Stop();
@@ -618,6 +744,7 @@ namespace PACMAN_GAME
                     x.Visible = false;
                 }
             }
+
             txtScore.Visible = false;
 
             // Центрируем надпись Game Over
@@ -637,9 +764,28 @@ namespace PACMAN_GAME
             restartLabel.BringToFront();
         }
 
+
+        private void StopAllSounds()
+        {
+            StopMoveSound();
+            StopGhostSound();
+            if (sounds.ContainsKey("fear_mode") && isFearSoundPlaying)
+            {
+                isFearSoundPlaying = false;
+                sounds["fear_mode"].Stop();
+            }
+        }
+
         private void gameOver(string message)
         {
             gameTimer.Stop();
+
+            // Останавливаем все звуки
+            StopAllSounds();
+            
+            // Воспроизведение только звука смерти Пакмана
+            PlaySound("pacman_death");
+            
             isGameOver = true;
 
             // Скрываем все элементы игры
@@ -658,12 +804,13 @@ namespace PACMAN_GAME
             deathAnimation.Location = new Point(pacman.Left, pacman.Top);
             deathAnimation.Size = new Size(45, 60);
             deathAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
-            deathAnimation.BackColor = Color.Transparent;
+            deathAnimation.BackColor = System.Drawing.Color.Transparent;
             deathAnimation.BringToFront();
             deathAnimation.Visible = true;
 
             // Запускаем таймер для показа Game Over через 1.2 секунды
             deathTimer.Start();
+
         }
 
         /// <summary>
@@ -697,20 +844,49 @@ namespace PACMAN_GAME
         private void ActivateFearMode()
         {
             isFearMode = true;
-            fearModeStartTime = DateTime.Now; // Record when fear mode started
+            fearModeStartTime = DateTime.Now;
             fearModeTimer.Start();
-            // Change ghost images to fear mode (placeholder)
+            
+            // Change ghost images to fear mode
             redGhost.Image = Properties.Resources.scared_ghost_anim;
             yellowGhost.Image = Properties.Resources.scared_ghost_anim;
             pinkGhost.Image = Properties.Resources.scared_ghost_anim;
+
+            // Останавливаем звук движения призраков
+            StopGhostSound();
+
+            // Запускаем звук режима страха
+            if (sounds.ContainsKey("fear_mode"))
+            {
+                isFearSoundPlaying = true;
+                var player = sounds["fear_mode"];
+                player.Position = TimeSpan.Zero;
+                player.Play();
+                player.MediaEnded += (s, e) =>
+                {
+                    if (isFearSoundPlaying && isFearMode)
+                    {
+                        player.Position = TimeSpan.Zero;
+                        player.Play();
+                    }
+                };
+            }
         }
 
-        private void EndFearMode(object sender, EventArgs e)
+        private void EndFearMode(object? sender, EventArgs e)
         {
             isFearMode = false;
             fearModeTimer.Stop();
             flickerTimer.Stop();
-            // Reset ghost images to normal (placeholder)
+
+            // Останавливаем звук режима страха
+            if (sounds.ContainsKey("fear_mode"))
+            {
+                isFearSoundPlaying = false;
+                sounds["fear_mode"].Stop();
+            }
+
+            // Reset ghost images to normal
             redGhost.Image = Properties.Resources.red_left;
             yellowGhost.Image = Properties.Resources.yellow_right;
             pinkGhost.Image = Properties.Resources.pink_left;
@@ -764,6 +940,8 @@ namespace PACMAN_GAME
         {
             score += 50; // Points for eating a ghost
             ghost.Visible = false;
+            // Воспроизведение звука поедания призрака
+            PlaySound("ghost_eaten");
             RespawnGhost(ghost);
         }
 
@@ -788,6 +966,74 @@ namespace PACMAN_GAME
             {
                 ghost.Image = Properties.Resources.pink_left;
                 pinkGhostX = score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
+            }
+        }
+
+        private void StartMoveSound()
+        {
+            // Не воспроизводим звук движения, если играет звук начала игры
+            if (isStartSoundPlaying)
+            {
+                return;
+            }
+
+            if (sounds.ContainsKey("pacman_move") && isMoveSoundPlaying == false && isGameOver == false)
+            {
+                isMoveSoundPlaying = true;
+                var player = sounds["pacman_move"];
+                player.Position = TimeSpan.Zero;
+                player.Play();
+                player.MediaEnded += (s, e) =>
+                {
+                    if (isMoveSoundPlaying && isGameOver == false)
+                    {
+                        player.Position = TimeSpan.Zero;
+                        player.Play();
+                    }
+                };
+            }
+        }
+
+        private void StopMoveSound()
+        {
+            if (sounds.ContainsKey("pacman_move") && isMoveSoundPlaying)
+            {
+                isMoveSoundPlaying = false;
+                sounds["pacman_move"].Stop();
+            }
+        }
+
+        private void StartGhostSound()
+        {
+            // Не воспроизводим звук призраков, если играет звук начала игры
+            if (isStartSoundPlaying)
+            {
+                return;
+            }
+
+            if (sounds.ContainsKey("ghost_move") && isGhostSoundPlaying == false && isGameOver == false)
+            {
+                isGhostSoundPlaying = true;
+                var player = sounds["ghost_move"];
+                player.Position = TimeSpan.Zero;
+                player.Play();
+                player.MediaEnded += (s, e) =>
+                {
+                    if (isGhostSoundPlaying && isGameOver == false)
+                    {
+                        player.Position = TimeSpan.Zero;
+                        player.Play();
+                    }
+                };
+            }
+        }
+
+        private void StopGhostSound()
+        {
+            if (sounds.ContainsKey("ghost_move") && isGhostSoundPlaying)
+            {
+                isGhostSoundPlaying = false;
+                sounds["ghost_move"].Stop();
             }
         }
     }
