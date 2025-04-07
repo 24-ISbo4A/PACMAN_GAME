@@ -111,7 +111,7 @@ namespace PACMAN_GAME
             menuArrow = new PictureBox();
             menuArrow.Size = new Size(60, 60);
             menuArrow.SizeMode = PictureBoxSizeMode.StretchImage;
-            menuArrow.BackColor = Color.Red; // Устанавливаем красный цвет по умолчанию
+            menuArrow.BackColor = ColorTranslator.FromHtml("#0B0102") ; // Устанавливаем красный цвет по умолчанию
             
             menuArrow.Image = Properties.Resources.menu_arrow;
             
