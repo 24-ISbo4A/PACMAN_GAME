@@ -148,4 +148,13 @@
   <data name="yellow_right" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\yellow_right.gif;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
   </data>
+  <data name="main_menu" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\main_menu.gif;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
+  </data>
+  <data name="menu_arrow" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\menu_arrow.png;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
+  </data>
+  <data name="pacman_death_anim" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pacman_death_anim.gif;System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51</value>
+  </data>
 </root>
