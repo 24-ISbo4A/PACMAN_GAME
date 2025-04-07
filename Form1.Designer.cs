@@ -2674,7 +2674,7 @@
 
         #endregion
 
-        private Label txtScore;
+        private System.Windows.Forms.Label txtScore;
         private PictureBox pictureBox1;
         private PictureBox pictureBox2;
         private PictureBox pictureBox3;
@@ -2715,7 +2715,7 @@
         private PictureBox pictureBox34;
         private PictureBox pictureBox35;
         private PictureBox pictureBox36;
-        private PictureBox pictureBox37;
+        private System.Windows.Forms.PictureBox pictureBox37;
         private PictureBox pictureBox38;
         private PictureBox pictureBox39;
         private PictureBox pictureBox40;
