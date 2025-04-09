@@ -783,6 +783,12 @@ namespace PACMAN_GAME
             // Останавливаем все звуки
             StopAllSounds();
             
+            if(message.Equals("You Win!"))
+            {
+                MessageBox.Show("You Win! Press R to restart or ESC to quit.");
+                return;
+            }
+
             // Воспроизведение только звука смерти Пакмана
             PlaySound("pacman_death");
             
