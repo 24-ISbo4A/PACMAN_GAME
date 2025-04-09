@@ -1,0 +1,30 @@
+name: Assign reviewers from CODEOWNERS
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  assign-reviewers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign reviewers
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: codeowners } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: '.github/CODEOWNERS',
+            });
+
+            const content = Buffer.from(codeowners.content, 'base64').toString();
+            const teams = content.match(/@[\w-]+\/[^\s]+/g) || [];
+            const users = content.match(/@[^\s/]+/g) || [];
+
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: users.filter(u => !u.includes('/')),
+              team_reviewers: teams.map(t => t.split('/')[1]),
+            });
