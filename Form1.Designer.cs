@@ -395,7 +395,6 @@
             txtScore.Size = new System.Drawing.Size(80, 25);
             txtScore.TabIndex = 0;
             txtScore.Text = "Score: 0";
-            txtScore.Click += label1_Click;
             // 
             // pictureBox1
             // 
@@ -448,7 +447,6 @@
             pacman.TabIndex = 5;
             pacman.TabStop = false;
             pacman.Tag = "ghost";
-            pacman.Click += pictureBox5_Click;
             // 
             // pinkGhost
             // 
@@ -482,7 +480,6 @@
             redGhost.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             redGhost.TabIndex = 8;
             redGhost.TabStop = false;
-            redGhost.Click += pictureBox8_Click;
             // 
             // pictureBox6
             // 
@@ -712,7 +709,6 @@
             // 
             // gameTimer
             // 
-            gameTimer.Tick += MainGameTimer;
             // 
             // pictureBox26
             // 
@@ -2230,7 +2226,6 @@
             pictureBox166.TabIndex = 173;
             pictureBox166.TabStop = false;
             pictureBox166.Tag = "coin";
-            pictureBox166.Click += pictureBox166_Click;
             // 
             // pictureBox168
             // 
@@ -2489,9 +2484,6 @@
             Controls.Add(pictureBox90);
             Controls.Add(pictureBox175);
             Text = "Form1";
-            Load += Form1_Load;
-            KeyDown += Keyisdown;
-            KeyUp += Keyisup;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
