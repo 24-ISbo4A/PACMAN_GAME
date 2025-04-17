@@ -8,209 +8,74 @@ using Size = System.Drawing.Size;
 
 namespace PACMAN_GAME;
 
-public partial class Form1 : Form
+public interface ISoundManager
 {
-    // Размер одной клетки сетки
-    private const int GridSize = 40;
-    private readonly Random _random = new();
+    void PlaySound(string soundName);
+    void StopSound(string soundName);
+    void StopAllSounds();
+    void InitializeSounds();
+    bool IsPlaying(string soundName);
+    Dictionary<string, MediaPlayer> _sounds_pub { get; }
+}
 
-    // Звуковые эффекты
+public interface IGameEntity
+{
+    PictureBox View { get; set; }
+    bool IsVisible { get; set; }
+    int X { get; set; }
+    int Y { get; set; }
+    int Width { get; }
+    int Height { get; }
+    Rectangle Bounds { get; }
+}
+
+public interface IMovable : IGameEntity
+{
+    int Speed { get; set; }
+    int Direction { get; set; }
+    void Move();
+    bool CanMove(int newX, int newY, List<IGameEntity> obstacles);
+}
+
+public interface ICollisionHandler
+{
+    bool CheckCollision(IGameEntity entity1, IGameEntity entity2);
+    void HandleCollision(IGameEntity entity1, IGameEntity entity2);
+}
+
+public interface IGameManager
+{
+    void StartGame();
+    void ResetGame();
+    void UpdateGame();
+    void GameOver(string message);
+    void NextLevel();
+}
+
+public interface IInputHandler
+{
+    void HandleKeyDown(KeyEventArgs e);
+    void HandleKeyUp(KeyEventArgs e);
+}
+
+public interface IUIManager
+{
+    void ShowMainMenu();
+    void HideMainMenu();
+    void ShowGameOverScreen(string message);
+    void UpdateScore(int score);
+    void UpdateArrowPosition(int selectedOption);
+    void HideGameOverScreen();
+}
+
+public class SoundManager : ISoundManager
+{
     private readonly Dictionary<string, MediaPlayer> _sounds = new();
-    private const int FearModeDuration = 10000; // Duration in milliseconds (10 seconds)
+    private readonly Dictionary<string, bool> _isPlaying = new();
+    
+    public Dictionary<string, MediaPlayer> _sounds_pub => _sounds;
 
-    // Add a new variable to track fear mode
-    private bool _isFearMode;
-    private bool _isFearSoundPlaying;
-    private bool _isGameOver;
-    private bool _isGhostSoundPlaying;
-    private bool _isInMenu = true;
-    private bool _isMoveSoundPlaying;
-    private bool _isStartSoundPlaying;
-
-    // Следующее запрошенное направление движения
-    private int _nextDirection = 1;
-
-    // Текущее направление движения Пакмана
-    private int _pacmanDirection = 1; // 0: вверх, 1: вправо, 2: вниз, 3: влево
-    private int _pinkGhostDirection;
-    private int _pinkGhostSpeed;
-    private int _playerSpeed;
-
-    // Направления движения призраков (0: вверх, 1: вправо, 2: вниз, 3: влево)
-    private int _redGhostDirection;
-    private int _redGhostSpeed;
-
-    private int _score;
-    private int _yellowGhostDirection;
-    private int _yellowGhostSpeed;
-
-    // For death and main menus, animations
-    private readonly PictureBox _deathAnimation;
-    private readonly Timer _deathTimer;
-    private DateTime _fearModeStartTime;
-    private readonly Timer _fearModeTimer = new();
-    private readonly Timer _flickerTimer = new();
-    private readonly Label _gameOverLabel;
-    private bool _isPinkGhostEaten;
-
-    // Track each ghost's state separately
-    private bool _isRedGhostEaten;
-    private bool _isYellowGhostEaten;
-    private readonly PictureBox _menuArrow;
-    private readonly PictureBox _menuBackground;
-    private readonly Label _restartLabel;
-    private int _selectedOption; // 0 - Start, 1 - Exit
-
-    public Form1()
-    {
-        InitializeComponent();
-        // Устанавливаем фиксированный размер окна
-        FormBorderStyle = FormBorderStyle.FixedSingle;
-        // Запрещаем изменение размера
-        MaximizeBox = false;
-        // Устанавливаем минимальный и максимальный размер окна
-        MinimumSize = new Size(1445, 1050);
-        MaximumSize = new Size(1445, 1050);
-        // Устанавливаем заголовок окна
-        Text = "Pac-Man Game";
-
-        // Инициализация звуков
-        InitializeSounds();
-
-        // Инициализация фона меню
-        _menuBackground = new PictureBox();
-        _menuBackground.Size = new Size(1445, 1050); // Размер на весь экран
-        _menuBackground.Location = new Point(0, 0); // Располагаем в левом верхнем углу
-        _menuBackground.SizeMode = PictureBoxSizeMode.StretchImage;
-        _menuBackground.BackColor = Color.Black; // Устанавливаем черный фон по умолчанию
-
-        _menuBackground.Image = Resources.main_menu;
-
-        _menuBackground.Visible = true;
-        Controls.Add(_menuBackground);
-
-        // Добавляем надписи для опций меню
-        var startLabel = new Label();
-        startLabel.Text = "PLAY";
-        startLabel.Font = new Font("Arial", 24, FontStyle.Bold);
-        startLabel.ForeColor = Color.White;
-        startLabel.AutoSize = true;
-        startLabel.Location = new Point(
-            (_menuBackground.Width - startLabel.PreferredWidth) / 2, // По центру
-            _menuBackground.Bottom - 200 // Снизу
-        );
-        startLabel.BackColor = Color.Transparent;
-        startLabel.Parent = _menuBackground;
-        Controls.Add(startLabel);
-
-        var exitLabel = new Label();
-        exitLabel.Text = "QUIT";
-        exitLabel.Font = new Font("Arial", 24, FontStyle.Bold);
-        exitLabel.ForeColor = Color.White;
-        exitLabel.AutoSize = true;
-        exitLabel.Location = new Point(
-            (_menuBackground.Width - exitLabel.PreferredWidth) / 2, // По центру
-            _menuBackground.Bottom - 100 // Снизу, под PLAY
-        );
-        exitLabel.BackColor = Color.Transparent;
-        exitLabel.Parent = _menuBackground;
-        Controls.Add(exitLabel);
-
-        // Скрываем все игровые элементы, кроме счёта
-        foreach (Control x in Controls)
-            if (x is PictureBox && x != _menuBackground && x != _menuArrow)
-                x.Visible = false;
-
-        txtScore.Visible = false; // Скрываем счёт в меню
-
-        // Инициализация стрелки меню
-        _menuArrow = new PictureBox();
-        _menuArrow.Size = new Size(60, 60);
-        _menuArrow.SizeMode = PictureBoxSizeMode.StretchImage;
-        _menuArrow.BackColor = ColorTranslator.FromHtml("#0B0102"); // Устанавливаем красный цвет по умолчанию
-
-        _menuArrow.Image = Resources.menu_arrow;
-
-        _menuArrow.Visible = true;
-        Controls.Add(_menuArrow);
-        _menuArrow.BringToFront();
-
-        // Устанавливаем начальную позицию стрелки
-        UpdateArrowPosition();
-
-        // Инициализация анимации смерти
-        _deathAnimation = new PictureBox();
-        _deathAnimation.Size = new Size(40, 40);
-        _deathAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
-        _deathAnimation.Visible = false;
-        Controls.Add(_deathAnimation);
-
-        // Инициализация таймера смерти
-        _deathTimer = new Timer();
-        _deathTimer.Interval = 1200; // 1 секунда
-        _deathTimer.Tick += DeathTimer_Tick;
-
-        // Инициализация метки Game Over
-        _gameOverLabel = new Label();
-        _gameOverLabel.Text = "GAME OVER";
-        _gameOverLabel.Font = new Font("Arial", 48, FontStyle.Bold);
-        _gameOverLabel.ForeColor = Color.Red;
-        _gameOverLabel.AutoSize = true;
-        _gameOverLabel.Visible = false;
-        Controls.Add(_gameOverLabel);
-
-        // Инициализация метки Restart
-        _restartLabel = new Label();
-        _restartLabel.Text = "Restart - R";
-        _restartLabel.Font = new Font("Arial", 24, FontStyle.Bold);
-        _restartLabel.ForeColor = Color.Red;
-        _restartLabel.AutoSize = true;
-        _restartLabel.Visible = false;
-        Controls.Add(_restartLabel);
-
-        // Timers setup
-        _fearModeTimer.Interval = 100; // Check every 100ms
-        _fearModeTimer.Tick += (s, e) =>
-        {
-            if (_isFearMode)
-            {
-                var elapsed = DateTime.Now - _fearModeStartTime;
-                if (elapsed.TotalMilliseconds >= FearModeDuration) EndFearMode();
-            }
-        };
-
-        // Setup flicker timer
-        _flickerTimer.Interval = 200; // Flicker every 200ms
-        _flickerTimer.Tick += (_, _) =>
-        {
-            if (_isFearMode)
-            {
-                var elapsed = DateTime.Now - _fearModeStartTime;
-                if (elapsed.TotalMilliseconds >= FearModeDuration - 3000) // Start flickering when 3 seconds remain
-                {
-                    redGhost.Visible = !redGhost.Visible;
-                    yellowGhost.Visible = !yellowGhost.Visible;
-                    pinkGhost.Visible = !pinkGhost.Visible;
-                }
-            }
-        };
-        _flickerTimer.Start();
-
-        ResetGame();
-    }
-
-    private void UpdateArrowPosition()
-    {
-        // Позиции для стрелки
-        var baseX = _menuBackground.Width / 2 + 250; // Стрелка справа
-        var baseY = _menuBackground.Bottom - 290; // Поднимаем стрелку выше
-        var spacing = 100; // Расстояние между опциями
-
-        _menuArrow.Location = new Point(baseX, baseY + _selectedOption * spacing);
-        _menuArrow.BringToFront();
-    }
-
-    private void InitializeSounds()
+    public void InitializeSounds()
     {
         try
         {
@@ -221,7 +86,6 @@ public partial class Form1 : Form
                 return;
             }
 
-            // Загружаем звуки
             var soundFiles = new Dictionary<string, string>
             {
                 { "game_start", "game_start.mp3" },
@@ -240,6 +104,16 @@ public partial class Form1 : Form
                     var player = new MediaPlayer();
                     player.Open(new Uri(Path.GetFullPath(filePath)));
                     _sounds[sound.Key] = player;
+                    _isPlaying[sound.Key] = false;
+                    
+                    player.MediaEnded += (s, e) =>
+                    {
+                        if (_isPlaying[sound.Key])
+                        {
+                            player.Position = TimeSpan.Zero;
+                            player.Play();
+                        }
+                    };
                 }
                 else
                 {
@@ -253,701 +127,1242 @@ public partial class Form1 : Form
         }
     }
 
-
-    private void Keyisdown(object sender, KeyEventArgs e)
+    public void PlaySound(string soundName)
     {
-        // Проверяем нажатие ESC в любой момент
-        if (e.KeyCode == Keys.Escape)
-        {
-            Application.Exit();
-            return;
-        }
-
-        if (_isInMenu)
-        {
-            if (e.KeyCode == Keys.Up)
-            {
-                _selectedOption = (_selectedOption - 1 + 2) % 2;
-                UpdateArrowPosition();
-            }
-            else if (e.KeyCode == Keys.Down)
-            {
-                _selectedOption = (_selectedOption + 1) % 2;
-                UpdateArrowPosition();
-            }
-            else if (e.KeyCode == Keys.Enter)
-            {
-                if (_selectedOption == 0)
-                {
-                    // Start Game
-                    _isInMenu = false;
-                    _menuBackground.Visible = false;
-                    _menuArrow.Visible = false;
-                    // Скрываем все элементы меню
-                    foreach (Control x in Controls)
-                        if (x is Label && x.Parent == _menuBackground)
-                            x.Visible = false;
-
-                    // Скрываем кнопки PLAY и QUIT
-                    foreach (Control x in Controls)
-                        if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
-                            x.Visible = false;
-
-                    txtScore.Visible = true; // Показываем счёт при старте игры
-                    ResetGame();
-                }
-                else if (_selectedOption == 1)
-                {
-                    // Exit
-                    Application.Exit();
-                }
-            }
-
-            return;
-        }
-
-        // Проверяем нажатие клавиши R для рестарта
-        if (e.KeyCode == Keys.R)
-        {
-            _gameOverLabel.Visible = false;
-            _restartLabel.Visible = false;
-            ResetGame();
-            return;
-        }
-
-        if (_isGameOver) return;
-
-        // Устанавливаем следующее направление движения
-        if (e.KeyCode == Keys.Up)
-        {
-            _nextDirection = 0;
-            pacman.Image = Resources.up;
-        }
-        else if (e.KeyCode == Keys.Down)
-        {
-            _nextDirection = 2;
-            pacman.Image = Resources.down;
-        }
-        else if (e.KeyCode == Keys.Left)
-        {
-            _nextDirection = 3;
-            pacman.Image = Resources.left;
-        }
-        else if (e.KeyCode == Keys.Right)
-        {
-            _nextDirection = 1;
-            pacman.Image = Resources.right;
-        }
-    }
-
-    private void Keyisup(object sender, KeyEventArgs e)
-    {
-        // Этот метод больше не нужен, но оставляем его пустым для обратной совместимости
-    }
-
-    private void MainGameTimer(object sender, EventArgs e)
-    {
-        txtScore.Text = "Score: " + _score;
-
-        // Check for large coin collection
-        foreach (Control x in Controls)
-            if (x is PictureBox && (string)x.Tag == "largeCoin" && x.Visible)
-                if (pacman.Bounds.IntersectsWith(x.Bounds))
-                {
-                    _score += 20; // Large coin score
-                    x.Visible = false;
-                    ActivateFearMode();
-                }
-
-        // Проверяем возможность поворота в запрошенном направлении
-        if (_nextDirection != _pacmanDirection)
-        {
-            var checkLeft = pacman.Left;
-            var checkTop = pacman.Top;
-
-            // Вычисляем новую позицию для проверки
-            switch (_nextDirection)
-            {
-                case 0: // вверх
-                    checkTop -= GridSize;
-                    break;
-                case 1: // вправо
-                    checkLeft += GridSize;
-                    break;
-                case 2: // вниз
-                    checkTop += GridSize;
-                    break;
-                case 3: // влево
-                    checkLeft -= GridSize;
-                    break;
-            }
-
-            // Проверяем, не столкнется ли Пакман со стеной при повороте
-            var canTurn = true;
-            foreach (Control x in Controls)
-                if (x is PictureBox && (string)x.Tag == "wall")
-                {
-                    var newPacmanBounds = new Rectangle(checkLeft, checkTop, pacman.Width, pacman.Height);
-                    if (newPacmanBounds.IntersectsWith(x.Bounds))
-                    {
-                        canTurn = false;
-                        break;
-                    }
-                }
-
-            // Если поворот возможен, меняем направление
-            if (canTurn) _pacmanDirection = _nextDirection;
-        }
-
-        // Движение Пакмана в текущем направлении
-        var newLeft = pacman.Left;
-        var newTop = pacman.Top;
-
-        switch (_pacmanDirection)
-        {
-            case 0: // вверх
-                newTop -= _playerSpeed;
-                break;
-            case 1: // вправо
-                newLeft += _playerSpeed;
-                break;
-            case 2: // вниз
-                newTop += _playerSpeed;
-                break;
-            case 3: // влево
-                newLeft -= _playerSpeed;
-                break;
-        }
-
-        // Проверяем столкновение со стенами
-        var canMove = true;
-        foreach (Control x in Controls)
-            if (x is PictureBox && (string)x.Tag == "wall")
-            {
-                var newPacmanBounds = new Rectangle(newLeft, newTop, pacman.Width, pacman.Height);
-                if (newPacmanBounds.IntersectsWith(x.Bounds))
-                {
-                    canMove = false;
-                    break;
-                }
-            }
-
-        // Если движение возможно, обновляем позицию Пакмана
-        if (canMove)
-        {
-            pacman.Left = newLeft;
-            pacman.Top = newTop;
-            StartMoveSound();
-        }
-        else
-        {
-            StopMoveSound();
-        }
-
-        // Проверка выхода за границы экрана
-        if (pacman.Left < -10) pacman.Left = ClientSize.Width - 10; // правая граница
-        if (pacman.Left > ClientSize.Width - 10) pacman.Left = -10; // левая граница
-        if (pacman.Top < -10) pacman.Top = ClientSize.Height - 10; // верхняя граница
-        if (pacman.Top > ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
-
-        // Проверка сбора монет
-        foreach (Control x in Controls)
-            if (x is PictureBox && (string)x.Tag == "coin" && x.Visible)
-                if (pacman.Bounds.IntersectsWith(x.Bounds))
-                {
-                    _score += 1;
-                    x.Visible = false;
-                }
-
-        // Движение призраков
-        bool anyGhostMoved = MoveGhost(redGhost, ref _redGhostDirection, _redGhostSpeed);
-        if (MoveGhost(yellowGhost, ref _yellowGhostDirection, _yellowGhostSpeed)) anyGhostMoved = true;
-        if (MoveGhost(pinkGhost, ref _pinkGhostDirection, _pinkGhostSpeed)) anyGhostMoved = true;
-
-        if (anyGhostMoved)
-            StartGhostSound();
-        else
-            StopGhostSound();
-
-        // Обеспечиваем, что призраки отображаются поверх монет
-        redGhost.BringToFront();
-        yellowGhost.BringToFront();
-        pinkGhost.BringToFront();
-
-        // Проверка столкновения Пакмана с призраками
-        CheckGhostCollision(redGhost);
-        CheckGhostCollision(yellowGhost);
-        CheckGhostCollision(pinkGhost);
-
-        if (_score >= 258) GameOver("You Win!");
-    }
-
-    private bool MoveGhost(PictureBox ghost, ref int direction, int speed)
-    {
-        if (_isFearMode)
-        {
-            // В режиме страха призраки движутся медленнее
-            speed = 4; // Медленная скорость во время страха
-
-            // Randomly change direction more frequently during fear mode
-            if (_random.Next(50) == 0) direction = _random.Next(4);
-        }
-        else if (_score >= 258) // На втором уровне
-        {
-            // На втором уровне призраки движутся со скоростью 80% от базовой
-            speed = 9; // 80% от базовой скорости (8)
-        }
-        else
-        {
-            // На первом уровне призраки движутся со скоростью 75% от базовой
-            speed = 8; // 75% от базовой скорости (8)
-        }
-
-        var newLeft = ghost.Left;
-        var newTop = ghost.Top;
-
-        switch (direction)
-        {
-            case 0: // вверх
-                newTop -= speed;
-                break;
-            case 1: // вправо
-                newLeft += speed;
-                break;
-            case 2: // вниз
-                newTop += speed;
-                break;
-            case 3: // влево
-                newLeft -= speed;
-                break;
-        }
-
-        // Проверяем столкновение со стенами
-        var canMove = true;
-        foreach (Control x in Controls)
-            if (x is PictureBox && (string)x.Tag == "wall")
-            {
-                var newGhostBounds = new Rectangle(newLeft, newTop, ghost.Width, ghost.Height);
-                if (newGhostBounds.IntersectsWith(x.Bounds))
-                {
-                    canMove = false;
-                    direction = _random.Next(4); // Меняем направление при столкновении
-                    break;
-                }
-            }
-
-        // Если движение возможно, обновляем позицию призрака
-        if (canMove)
-        {
-            ghost.Left = newLeft;
-            ghost.Top = newTop;
-            return true;
-        }
-
-        return false;
-    }
-
-    private void PlaySound(string soundName)
-    {
-        // Не воспроизводим другие звуки, если играет звук начала игры
-        if (_isStartSoundPlaying && soundName != "game_start") return;
-
         if (_sounds.ContainsKey(soundName))
+        {
             try
             {
                 var player = _sounds[soundName];
                 player.Position = TimeSpan.Zero;
+                
+                _isPlaying[soundName] = soundName == "pacman_move" || 
+                                       soundName == "ghost_move" || 
+                                       soundName == "fear_mode";
+                
                 player.Play();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при воспроизведении звука {soundName}: {ex.Message}");
             }
-    }
-
-    private void ResetGame()
-    {
-        StopAllSounds();
-        txtScore.Text = "Score: 0";
-        _score = 0;
-
-        // Изменяем базовые скорости
-        _redGhostSpeed = 8;
-        _yellowGhostSpeed = 8;
-        _pinkGhostSpeed = 8;
-        _playerSpeed = 12;
-
-        _isGameOver = false;
-        _isFearMode = false;
-        _isRedGhostEaten = false;
-        _isYellowGhostEaten = false;
-        _isPinkGhostEaten = false;
-        _isMoveSoundPlaying = false;
-        _isGhostSoundPlaying = false;
-        _isFearSoundPlaying = false;
-
-        // Reset ghost images to normal state
-        redGhost.Image = Resources.red_left;
-        yellowGhost.Image = Resources.yellow_right;
-        pinkGhost.Image = Resources.pink_left;
-
-        // Показываем все элементы игры
-        foreach (Control x in Controls)
-            if (x is PictureBox && x != _deathAnimation && x != _menuBackground && x != _menuArrow && !_isInMenu)
-                x.Visible = true;
-
-        txtScore.Visible = true;
-
-        // Показываем Пакмана
-        if (!_isInMenu) pacman.Visible = true;
-
-        // Фиксированная позиция спавна Пакмана
-        pacman.Left = 35;
-        pacman.Top = 47;
-
-        // Фиксированные позиции спавна призраков
-        redGhost.Left = 710;
-        redGhost.Top = 420;
-
-        yellowGhost.Left = 710;
-        yellowGhost.Top = 420;
-
-        pinkGhost.Left = 710;
-        pinkGhost.Top = 420;
-
-        // Случайные начальные направления для призраков
-        _pinkGhostDirection = _random.Next(4);
-        _pinkGhostDirection = _random.Next(4);
-        _pinkGhostDirection = _random.Next(4);
-
-        foreach (Control x in Controls)
-            if (x is PictureBox && ((string)x.Tag == "coin" || (string)x.Tag == "big-coin") && !_isInMenu)
-                x.Visible = true;
-
-        // Make sure timers are stopped and reset
-        _fearModeTimer.Stop();
-        _flickerTimer.Stop();
-        gameTimer.Stop(); // Останавливаем таймер игры
-
-
-        // Скрываем все элементы смерти
-        _deathAnimation.Visible = false;
-        _gameOverLabel.Visible = false;
-        _restartLabel.Visible = false;
-
-        // Устанавливаем начальное направление Пакмана
-        _pacmanDirection = 1;
-        _nextDirection = 1;
-        pacman.Image = Resources.right;
-
-
-        // Воспроизведение звука начала игры и ожидание его окончания
-        if (_sounds.ContainsKey("game_start") && !_isInMenu)
-        {
-            _isStartSoundPlaying = true;
-            var player = _sounds["game_start"];
-            player.Position = TimeSpan.Zero;
-            player.MediaEnded += (_, _) =>
-            {
-                player.MediaEnded -= (_, _) => { }; // Удаляем обработчик
-                _isStartSoundPlaying = false; // Отмечаем, что звук начала игры закончился
-                gameTimer.Start(); // Запускаем игру только после окончания звука
-            };
-            player.Play();
         }
     }
 
-    private void DeathTimer_Tick(object sender, EventArgs e)
+    public void StopSound(string soundName)
     {
-        _deathTimer.Stop();
-        _deathAnimation.Visible = false;
-        ShowGameOverScreen();
+        if (_sounds.ContainsKey(soundName) && _isPlaying[soundName])
+        {
+            _isPlaying[soundName] = false;
+            _sounds[soundName].Stop();
+        }
     }
 
-    private void ShowGameOverScreen()
+    public void StopAllSounds()
     {
-        // Скрываем все элементы игры
-        foreach (Control x in Controls)
-            if (x is PictureBox && x != _deathAnimation && x != _menuBackground && x != _menuArrow)
+        foreach (var sound in _sounds.Keys)
+        {
+            StopSound(sound);
+        }
+    }
+
+    public bool IsPlaying(string soundName)
+    {
+        return _isPlaying.ContainsKey(soundName) && _isPlaying[soundName];
+    }
+}
+
+public abstract class GameEntity : IGameEntity
+{
+    public PictureBox View { get; set; }
+    public bool IsVisible 
+    { 
+        get => View.Visible; 
+        set => View.Visible = value; 
+    }
+    
+    public int X 
+    { 
+        get => View.Left; 
+        set => View.Left = value; 
+    }
+    
+    public int Y 
+    { 
+        get => View.Top;
+        set => View.Top = value; 
+    }
+    
+    public int Width => View.Width;
+    public int Height => View.Height;
+    public Rectangle Bounds => View.Bounds;
+
+    protected GameEntity(PictureBox view)
+    {
+        View = view;
+    }
+}
+
+public class Pacman : GameEntity, IMovable
+{
+    private const int DirectionUp = 0;
+    private const int DirectionRight = 1;
+    private const int DirectionDown = 2;
+    private const int DirectionLeft = 3;
+
+    public int Speed { get; set; }
+    public int Direction { get; set; }
+    public int NextDirection { get; set; }
+    private readonly Form _parent;
+    private readonly ISoundManager _soundManager;
+
+    public Pacman(PictureBox view, Form parent, ISoundManager soundManager) : base(view)
+    {
+        Direction = DirectionRight;
+        NextDirection = DirectionRight;
+        Speed = 12;
+        _parent = parent;
+        _soundManager = soundManager;
+    }
+
+    public void SetDirection(int direction)
+    {
+        NextDirection = direction;
+        UpdateImage();
+    }
+
+    private void UpdateImage()
+    {
+        switch (NextDirection)
+        {
+            case DirectionUp:
+                View.Image = Resources.up;
+                break;
+            case DirectionDown:
+                View.Image = Resources.down;
+                break;
+            case DirectionLeft:
+                View.Image = Resources.left;
+                break;
+            case DirectionRight:
+                View.Image = Resources.right;
+                break;
+        }
+    }
+
+    public void Move()
+    {
+        CheckDirectionChange();
+        
+        int newX = X;
+        int newY = Y;
+
+        switch (Direction)
+        {
+            case DirectionUp:
+                newY -= Speed;
+                break;
+            case DirectionRight:
+                newX += Speed;
+                break;
+            case DirectionDown:
+                newY += Speed;
+                break;
+            case DirectionLeft:
+                newX -= Speed;
+                break;
+        }
+
+        if (newX < -10) newX = _parent.ClientSize.Width - 10;
+        if (newX > _parent.ClientSize.Width - 10) newX = -10;
+        if (newY < -10) newY = _parent.ClientSize.Height - 10;
+        if (newY > _parent.ClientSize.Height - 10) newY = -10;
+
+        bool moved = false;
+        List<IGameEntity> walls = _parent.Controls
+            .OfType<PictureBox>()
+            .Where(p => (string)p.Tag == "wall")
+            .Select(p => new Wall(p))
+            .Cast<IGameEntity>()
+            .ToList();
+
+        if (CanMove(newX, newY, walls))
+        {
+            X = newX;
+            Y = newY;
+            moved = true;
+        }
+
+        if (moved)
+        {
+            if (!_soundManager.IsPlaying("pacman_move") && !_soundManager.IsPlaying("game_start"))
+            {
+                _soundManager.PlaySound("pacman_move");
+            }
+        }
+        else
+        {
+            _soundManager.StopSound("pacman_move");
+        }
+    }
+
+    private void CheckDirectionChange()
+    {
+        if (NextDirection == Direction) return;
+
+        int checkX = X;
+        int checkY = Y;
+
+        switch (NextDirection)
+        {
+            case DirectionUp:
+                checkY -= 40;
+                break;
+            case DirectionRight:
+                checkX += 40;
+                break;
+            case DirectionDown:
+                checkY += 40;
+                break;
+            case DirectionLeft:
+                checkX -= 40;
+                break;
+        }
+
+        List<IGameEntity> walls = _parent.Controls
+            .OfType<PictureBox>()
+            .Where(p => (string)p.Tag == "wall")
+            .Select(p => new Wall(p))
+            .Cast<IGameEntity>()
+            .ToList();
+
+        if (CanMove(checkX, checkY, walls))
+        {
+            Direction = NextDirection;
+        }
+    }
+
+    public bool CanMove(int newX, int newY, List<IGameEntity> obstacles)
+    {
+        Rectangle newBounds = new Rectangle(newX, newY, Width, Height);
+        
+        foreach (IGameEntity obstacle in obstacles)
+        {
+            if (newBounds.IntersectsWith(obstacle.Bounds))
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+}
+
+public abstract class Ghost : GameEntity, IMovable
+{
+    protected const int DirectionUp = 0;
+    protected const int DirectionRight = 1;
+    protected const int DirectionDown = 2;
+    protected const int DirectionLeft = 3;
+    
+    public int Speed { get; set; }
+    public int Direction { get; set; }
+    protected readonly Random Random = new();
+    protected readonly Form Parent;
+    protected bool IsFearMode;
+    protected bool IsEaten;
+    
+    protected Ghost(PictureBox view, Form parent) : base(view)
+    {
+        Parent = parent;
+        Speed = 8;
+        Direction = Random.Next(4);
+    }
+    
+    public virtual void Move()
+    {
+        int actualSpeed = IsFearMode ? 4 : Speed;
+        
+        int newX = X;
+        int newY = Y;
+        
+        switch (Direction)
+        {
+            case DirectionUp:
+                newY -= actualSpeed;
+                break;
+            case DirectionRight:
+                newX += actualSpeed;
+                break;
+            case DirectionDown:
+                newY += actualSpeed;
+                break;
+            case DirectionLeft:
+                newX -= actualSpeed;
+                break;
+        }
+        
+        List<IGameEntity> walls = Parent.Controls
+            .OfType<PictureBox>()
+            .Where(p => (string)p.Tag == "wall")
+            .Select(p => new Wall(p))
+            .Cast<IGameEntity>()
+            .ToList();
+        
+        if (CanMove(newX, newY, walls))
+        {
+            X = newX;
+            Y = newY;
+        }
+        else
+        {
+            Direction = Random.Next(4);
+        }
+    }
+    
+    public bool CanMove(int newX, int newY, List<IGameEntity> obstacles)
+    {
+        Rectangle newBounds = new Rectangle(newX, newY, Width, Height);
+        
+        foreach (IGameEntity obstacle in obstacles)
+        {
+            if (newBounds.IntersectsWith(obstacle.Bounds))
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    public void EnterFearMode()
+    {
+        IsFearMode = true;
+        View.Image = Resources.scared_ghost_anim;
+    }
+    
+    public void ExitFearMode()
+    {
+        IsFearMode = false;
+        IsEaten = false;
+        SetNormalImage();
+    }
+    
+    public void SetEaten()
+    {
+        IsEaten = true;
+        ShowEatenState();
+    }
+    
+    public bool GetIsEaten()
+    {
+        return IsEaten;
+    }
+    
+    public bool GetIsFearMode()
+    {
+        return IsFearMode;
+    }
+    
+    protected abstract void SetNormalImage();
+    
+    public void Respawn()
+    {
+        X = 710;
+        Y = 420;
+        
+        if (IsFearMode && !IsEaten)
+        {
+            View.Image = Resources.scared_ghost_anim;
+        }
+        else if (IsEaten)
+        {
+            ShowEatenState();
+        }
+        else
+        {
+            SetNormalImage();
+        }
+        
+        IsVisible = true;
+    }
+
+    public void ShowEatenState()
+    {
+        IsEaten = true;
+        View.Image = null;
+        IsVisible = true;
+    }
+}
+
+public class RedGhost : Ghost
+{
+    public RedGhost(PictureBox view, Form parent) : base(view, parent) { }
+    
+    protected override void SetNormalImage()
+    {
+        View.Image = Resources.red_left;
+    }
+}
+
+public class YellowGhost : Ghost
+{
+    public YellowGhost(PictureBox view, Form parent) : base(view, parent) { }
+    
+    protected override void SetNormalImage()
+    {
+        View.Image = Resources.yellow_right;
+    }
+}
+
+public class PinkGhost : Ghost
+{
+    public PinkGhost(PictureBox view, Form parent) : base(view, parent) { }
+    
+    protected override void SetNormalImage()
+    {
+        View.Image = Resources.pink_left;
+    }
+}
+
+public class Coin : GameEntity
+{
+    public int Value { get; }
+    
+    public Coin(PictureBox view, int value = 1) : base(view)
+    {
+        Value = value;
+    }
+}
+
+public class Wall : GameEntity
+{
+    public Wall(PictureBox view) : base(view) { }
+}
+
+public class CollisionHandler : ICollisionHandler
+{
+    private readonly ISoundManager _soundManager;
+    
+    public CollisionHandler(ISoundManager soundManager)
+    {
+        _soundManager = soundManager;
+    }
+    
+    public bool CheckCollision(IGameEntity entity1, IGameEntity entity2)
+    {
+        return entity1.Bounds.IntersectsWith(entity2.Bounds);
+    }
+    
+    public void HandleCollision(IGameEntity entity1, IGameEntity entity2)
+    {
+        // This method is empty because the specific collision handling is done in GameManager
+    }
+}
+
+public class UIManager : IUIManager
+{
+    private readonly Form _parent;
+    private readonly PictureBox _menuBackground;
+    private readonly PictureBox _menuArrow;
+    private readonly Label _gameOverLabel;
+    private readonly Label _restartLabel;
+    private readonly Label _scoreLabel;
+    private readonly PictureBox _deathAnimation;
+    
+    public UIManager(Form parent, PictureBox menuBackground, PictureBox menuArrow, 
+                    Label gameOverLabel, Label restartLabel, Label scoreLabel,
+                    PictureBox deathAnimation)
+    {
+        _parent = parent;
+        _menuBackground = menuBackground;
+        _menuArrow = menuArrow;
+        _gameOverLabel = gameOverLabel;
+        _restartLabel = restartLabel;
+        _scoreLabel = scoreLabel;
+        _deathAnimation = deathAnimation;
+    }
+    
+    public void ShowMainMenu()
+    {
+        _menuBackground.Visible = true;
+        _menuArrow.Visible = true;
+        
+        foreach (Control x in _parent.Controls)
+        {
+            if (x is PictureBox && x != _menuBackground && x != _menuArrow)
+            {
                 x.Visible = false;
-
-        txtScore.Visible = false;
-
-        // Центрируем надпись Game Over
+            }
+            
+            if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
+            {
+                x.Visible = true;
+            }
+        }
+        
+        _scoreLabel.Visible = false;
+    }
+    
+    public void HideMainMenu()
+    {
+        _menuBackground.Visible = false;
+        _menuArrow.Visible = false;
+        
+        foreach (Control x in _parent.Controls)
+        {
+            if (x.Parent == _menuBackground)
+            {
+                x.Visible = false;
+            }
+            
+            if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
+            {
+                x.Visible = false;
+            }
+            
+            if (x is PictureBox pictureBox && 
+                ((string)pictureBox.Tag == "wall" || 
+                 (string)pictureBox.Tag == "coin" || 
+                 (string)pictureBox.Tag == "largeCoin"))
+            {
+                pictureBox.Visible = true;
+            }
+            
+            if (x.Name == "pacman" || x.Name == "redGhost" || 
+                x.Name == "yellowGhost" || x.Name == "pinkGhost")
+            {
+                x.Visible = true;
+            }
+        }
+        
+        _scoreLabel.Visible = true;
+        _scoreLabel.BringToFront();
+    }
+    
+    public void ShowGameOverScreen(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+        {
+            _gameOverLabel.Visible = false;
+            _restartLabel.Visible = false;
+            return;
+        }
+        
+        if (message == "You Win!")
+        {
+            MessageBox.Show("You Win! Press R to restart or ESC to quit.");
+            return;
+        }
+        
+        foreach (Control x in _parent.Controls)
+        {
+            if (x.Name == "pacman" || x.Name == "redGhost" || 
+                x.Name == "yellowGhost" || x.Name == "pinkGhost" ||
+                (x is PictureBox && x != _menuBackground && x != _menuArrow && x != _deathAnimation))
+            {
+                x.Visible = false;
+            }
+        }
+        
+        _scoreLabel.Visible = false;
+        
         _gameOverLabel.Location = new Point(
-            (ClientSize.Width - _gameOverLabel.Width) / 2,
-            (ClientSize.Height - _gameOverLabel.Height) / 2 - 100
+            (_parent.ClientSize.Width - _gameOverLabel.Width) / 2,
+            (_parent.ClientSize.Height - _gameOverLabel.Height) / 2 - 100
         );
         _gameOverLabel.Visible = true;
         _gameOverLabel.BringToFront();
-
-        // Размещаем надпись Restart под Game Over
+        
         _restartLabel.Location = new Point(
-            (ClientSize.Width - _restartLabel.Width) / 2,
+            (_parent.ClientSize.Width - _restartLabel.Width) / 2,
             _gameOverLabel.Bottom + 50
         );
         _restartLabel.Visible = true;
         _restartLabel.BringToFront();
     }
-
-
-    private void StopAllSounds()
+    
+    public void UpdateScore(int score)
     {
-        StopMoveSound();
-        StopGhostSound();
-        if (_sounds.ContainsKey("fear_mode") && _isFearSoundPlaying)
-        {
-            _isFearSoundPlaying = false;
-            _sounds["fear_mode"].Stop();
-        }
+        _scoreLabel.Text = "Score: " + score;
+        _scoreLabel.Visible = true;
+        _scoreLabel.BringToFront();
+    }
+    
+    public void UpdateArrowPosition(int selectedOption)
+    {
+        int baseX = _menuBackground.Width / 2 + 250;
+        int baseY = _menuBackground.Bottom - 290;
+        int spacing = 100;
+        
+        _menuArrow.Location = new Point(baseX, baseY + selectedOption * spacing);
+        _menuArrow.BringToFront();
     }
 
-    private void GameOver(string message)
+    public void HideGameOverScreen()
     {
-        gameTimer.Stop();
+        _gameOverLabel.Visible = false;
+        _restartLabel.Visible = false;
+    }
+}
 
-        // Останавливаем все звуки
-        StopAllSounds();
-
-        if (message.Equals("You Win!"))
+public class InputHandler : IInputHandler
+{
+    private readonly GameManager _gameManager;
+    private readonly Pacman _pacman;
+    
+    public InputHandler(GameManager gameManager, Pacman pacman)
+    {
+        _gameManager = gameManager;
+        _pacman = pacman;
+    }
+    
+    public void HandleKeyDown(KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Escape)
         {
-            MessageBox.Show("You Win! Press R to restart or ESC to quit.");
+            Application.Exit();
             return;
         }
-
-        // Воспроизведение только звука смерти Пакмана
-        PlaySound("pacman_death");
-
-        _isGameOver = true;
-
-        // Скрываем все элементы игры
-        foreach (Control x in Controls)
-            if (x is PictureBox && x != _deathAnimation && x != _menuBackground && x != _menuArrow)
-                x.Visible = false;
-
-        txtScore.Visible = false;
-
-        // Показываем анимацию смерти
-        _deathAnimation.Image = Resources.pacman_death_anim;
-
-        _deathAnimation.Location = new Point(pacman.Left, pacman.Top);
-        _deathAnimation.Size = new Size(45, 60);
-        _deathAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
-        _deathAnimation.BackColor = Color.Transparent;
-        _deathAnimation.BringToFront();
-        _deathAnimation.Visible = true;
-
-        // Запускаем таймер для показа Game Over через 1.2 секунды
-        _deathTimer.Start();
+        
+        if (_gameManager.IsInMenu)
+        {
+            switch (e.KeyCode)
+            {
+                case Keys.Up:
+                    _gameManager.SelectMenuOption(-1);
+                    break;
+                case Keys.Down:
+                    _gameManager.SelectMenuOption(1);
+                    break;
+                case Keys.Enter:
+                    _gameManager.ExecuteSelectedMenuOption();
+                    break;
+            }
+            return;
+        }
+        
+        if (e.KeyCode == Keys.R)
+        {
+            _gameManager.ResetGame();
+            return;
+        }
+        
+        if (_gameManager.IsGameOver) return;
+        
+        switch (e.KeyCode)
+        {
+            case Keys.Up:
+                _pacman.SetDirection(0);
+                break;
+            case Keys.Down:
+                _pacman.SetDirection(2);
+                break;
+            case Keys.Left:
+                _pacman.SetDirection(3);
+                break;
+            case Keys.Right:
+                _pacman.SetDirection(1);
+                break;
+        }
     }
-
-    private void pictureBox166_Click(object sender, EventArgs e)
+    
+    public void HandleKeyUp(KeyEventArgs e)
     {
+        // No specific actions on key up in this game
     }
+}
 
+public class GameManager : IGameManager
+{
+    private readonly ISoundManager _soundManager;
+    private readonly IUIManager _uiManager;
+    private readonly ICollisionHandler _collisionHandler;
+    private readonly Timer _gameTimer;
+    private readonly Timer _fearModeTimer;
+    private readonly Timer _flickerTimer;
+    private readonly Timer _deathTimer;
+    private readonly PictureBox _deathAnimation;
+    private readonly Form _parent;
+    
+    private int _score;
+    private int _selectedOption;
+    private bool _isGameOver;
+    private bool _isFearMode;
+    private DateTime _fearModeStartTime;
+    private const int FearModeDuration = 10000;
+    
+    public bool IsInMenu { get; private set; } = true;
+    public bool IsGameOver => _isGameOver;
+    
+    private Pacman _pacman;
+    private List<Ghost> _ghosts;
+    private List<Coin> _coins;
+    
+    public GameManager(
+        Form parent,
+        ISoundManager soundManager, 
+        IUIManager uiManager, 
+        ICollisionHandler collisionHandler,
+        Timer gameTimer,
+        Timer fearModeTimer,
+        Timer flickerTimer,
+        Timer deathTimer,
+        PictureBox deathAnimation)
+    {
+        _parent = parent;
+        _soundManager = soundManager;
+        _uiManager = uiManager;
+        _collisionHandler = collisionHandler;
+        _gameTimer = gameTimer;
+        _fearModeTimer = fearModeTimer;
+        _flickerTimer = flickerTimer;
+        _deathTimer = deathTimer;
+        _deathAnimation = deathAnimation;
+        
+        InitializeGameEntities();
+        SetupTimers();
+    }
+    
+    public void InitializeGameEntities()
+    {
+        PictureBox pacmanView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pacman");
+        if (pacmanView != null)
+        {
+            _pacman = new Pacman(pacmanView, _parent, _soundManager);
+        }
+        
+        _ghosts = new List<Ghost>();
+        
+        PictureBox redGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "redGhost");
+        if (redGhostView != null)
+        {
+            _ghosts.Add(new RedGhost(redGhostView, _parent));
+        }
+        
+        PictureBox yellowGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "yellowGhost");
+        if (yellowGhostView != null)
+        {
+            _ghosts.Add(new YellowGhost(yellowGhostView, _parent));
+        }
+        
+        PictureBox pinkGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pinkGhost");
+        if (pinkGhostView != null)
+        {
+            _ghosts.Add(new PinkGhost(pinkGhostView, _parent));
+        }
+        
+        _coins = _parent.Controls
+            .OfType<PictureBox>()
+            .Where(p => (string)p.Tag == "coin" || (string)p.Tag == "largeCoin")
+            .Select(p => new Coin(p, (string)p.Tag == "largeCoin" ? 20 : 1))
+            .ToList();
+    }
+    
+    private void SetupTimers()
+    {
+        _fearModeTimer.Interval = 100;
+        _fearModeTimer.Tick += (s, e) =>
+        {
+            if (_isFearMode)
+            {
+                var elapsed = DateTime.Now - _fearModeStartTime;
+                if (elapsed.TotalMilliseconds >= FearModeDuration)
+                {
+                    EndFearMode();
+                }
+            }
+        };
+        
+        _flickerTimer.Interval = 200;
+        _flickerTimer.Tick += (_, _) =>
+        {
+            if (_isFearMode)
+            {
+                var elapsed = DateTime.Now - _fearModeStartTime;
+                if (elapsed.TotalMilliseconds >= FearModeDuration - 3000)
+                {
+                    foreach (Ghost ghost in _ghosts)
+                    {
+                        ghost.IsVisible = !ghost.IsVisible;
+                    }
+                }
+            }
+        };
+        
+        _deathTimer.Interval = 1200;
+        _deathTimer.Tick += (s, e) =>
+        {
+            _deathTimer.Stop();
+            _deathAnimation.Visible = false;
+            _uiManager.ShowGameOverScreen("Game Over");
+        };
+        
+        _gameTimer.Tick += (s, e) => UpdateGame();
+    }
+    
+    public void StartGame()
+    {
+        IsInMenu = false;
+        _uiManager.HideMainMenu();
+        _uiManager.UpdateScore(0);
+        ResetGame();
+        
+        _soundManager.PlaySound("game_start");
+        try
+        {
+            var player = _soundManager._sounds_pub["game_start"];
+            player.MediaEnded += StartGameAfterSound;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Error setting up sound handler: " + ex.Message);
+            Timer startDelay = new Timer();
+            startDelay.Interval = 4000;
+            startDelay.Tick += (s, e) => 
+            {
+                _gameTimer.Start();
+                startDelay.Stop();
+            };
+            startDelay.Start();
+        }
+    }
+    
+    private void StartGameAfterSound(object? sender, EventArgs e)
+    {
+        if (sender != null)
+        {
+            ((MediaPlayer)sender).MediaEnded -= StartGameAfterSound;
+        }
+        _gameTimer.Start();
+    }
+    
+    public void ResetGame()
+    {
+        _soundManager.StopAllSounds();
+        _score = 0;
+        
+        _uiManager.HideGameOverScreen();
+        _deathAnimation.Visible = false;
+        
+        _isGameOver = false;
+        _isFearMode = false;
+        
+        foreach (Control control in _parent.Controls)
+        {
+            if (control is PictureBox pictureBox && (string)pictureBox.Tag == "wall")
+            {
+                pictureBox.Visible = true;
+                pictureBox.BringToFront();
+            }
+        }
+        
+        if (_pacman != null)
+        {
+            _pacman.X = 35;
+            _pacman.Y = 47;
+            _pacman.Direction = 1;
+            _pacman.NextDirection = 1;
+            _pacman.View.Image = Resources.right;
+            _pacman.IsVisible = !IsInMenu;
+            _pacman.View.BringToFront();
+        }
+        
+        foreach (Ghost ghost in _ghosts)
+        {
+            ghost.X = 710;
+            ghost.Y = 420;
+            ghost.Direction = new Random().Next(4);
+            ghost.ExitFearMode();
+            ghost.IsVisible = !IsInMenu;
+        }
+        
+        foreach (Coin coin in _coins)
+        {
+            coin.IsVisible = !IsInMenu;
+        }
+        
+        _fearModeTimer.Stop();
+        _flickerTimer.Stop();
+        _gameTimer.Stop();
+        _deathTimer.Stop();
+        
+        _uiManager.UpdateScore(_score);
+        
+        if (!IsInMenu)
+        {
+            try 
+            {
+                _soundManager.PlaySound("game_start");
+                
+                var player = _soundManager._sounds_pub["game_start"];
+                player.MediaEnded += StartGameAfterSound;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error starting game: " + ex.Message);
+                Timer startDelay = new Timer();
+                startDelay.Interval = 4000;
+                startDelay.Tick += (s, e) => 
+                {
+                    _gameTimer.Start();
+                    startDelay.Stop();
+                };
+                startDelay.Start();
+            }
+        }
+    }
+    
+    public void UpdateGame()
+    {
+        _uiManager.UpdateScore(_score);
+        
+        if (!IsInMenu && !IsGameOver)
+        {
+            _uiManager.UpdateScore(_score);
+        }
+        
+        foreach (Coin coin in _coins.Where(c => c.IsVisible && c.Value > 1))
+        {
+            if (_collisionHandler.CheckCollision(_pacman, coin))
+            {
+                _score += coin.Value;
+                coin.IsVisible = false;
+                ActivateFearMode();
+            }
+        }
+        
+        _pacman.Move();
+        
+        foreach (Coin coin in _coins.Where(c => c.IsVisible && c.Value == 1))
+        {
+            if (_collisionHandler.CheckCollision(_pacman, coin))
+            {
+                _score += coin.Value;
+                coin.IsVisible = false;
+            }
+        }
+        
+        // Bring all ghosts to front before moving them so they appear on top of coins
+        foreach (Ghost ghost in _ghosts)
+        {
+            ghost.View.BringToFront();
+        }
+        
+        bool anyGhostMoved = false;
+        foreach (Ghost ghost in _ghosts)
+        {
+            bool moved = ghost.IsVisible;
+            ghost.Move();
+            if (moved) anyGhostMoved = true;
+            
+            if (_collisionHandler.CheckCollision(_pacman, ghost))
+            {
+                // Ghost can kill player if either:
+                // 1. Global fear mode is not active OR
+                // 2. This specific ghost is in normal mode (has been eaten and respawned)
+                if (_isFearMode && !ghost.GetIsEaten() && ghost.GetIsFearMode())
+                {
+                    // Only eat the ghost if it's in fear mode and hasn't been eaten yet
+                    EatGhost(ghost);
+                }
+                else
+                {
+                    // Ghost kills player if it's in normal mode (either fear mode is off
+                    // or this ghost specifically has been reset to normal mode)
+                    GameOver("You Died!");
+                    return;
+                }
+            }
+        }
+        
+        if (anyGhostMoved && !_soundManager.IsPlaying("game_start") && !_isFearMode)
+        {
+            if (!_soundManager.IsPlaying("ghost_move"))
+            {
+                _soundManager.PlaySound("ghost_move");
+            }
+        }
+        else
+        {
+            _soundManager.StopSound("ghost_move");
+        }
+        
+        // Pacman should be on top of ghosts
+        _pacman.View.BringToFront();
+        
+        if (_score >= 258) GameOver("You Win!");
+    }
+    
     private void ActivateFearMode()
     {
         _isFearMode = true;
         _fearModeStartTime = DateTime.Now;
         _fearModeTimer.Start();
-
-        // Change ghost images to fear mode
-        redGhost.Image = Resources.scared_ghost_anim;
-        yellowGhost.Image = Resources.scared_ghost_anim;
-        pinkGhost.Image = Resources.scared_ghost_anim;
-
-        // Останавливаем звук движения призраков
-        StopGhostSound();
-
-        // Запускаем звук режима страха
-        if (_sounds.ContainsKey("fear_mode"))
+        _flickerTimer.Start();
+        
+        foreach (Ghost ghost in _ghosts)
         {
-            _isFearSoundPlaying = true;
-            var player = _sounds["fear_mode"];
-            player.Position = TimeSpan.Zero;
-            player.Play();
-            player.MediaEnded += (_, _) =>
-            {
-                if (_isFearSoundPlaying && _isFearMode)
-                {
-                    player.Position = TimeSpan.Zero;
-                    player.Play();
-                }
-            };
+            ghost.EnterFearMode();
+        }
+        
+        _soundManager.StopSound("ghost_move");
+        
+        if (!_soundManager.IsPlaying("fear_mode"))
+        {
+            _soundManager.PlaySound("fear_mode");
         }
     }
-
+    
     private void EndFearMode()
     {
         _isFearMode = false;
         _fearModeTimer.Stop();
         _flickerTimer.Stop();
-
-        // Останавливаем звук режима страха
-        if (_sounds.ContainsKey("fear_mode"))
+        
+        _soundManager.StopSound("fear_mode");
+        
+        foreach (Ghost ghost in _ghosts)
         {
-            _isFearSoundPlaying = false;
-            _sounds["fear_mode"].Stop();
+            ghost.ExitFearMode();
+            ghost.IsVisible = true;
         }
-
-        // Reset ghost images to normal
-        redGhost.Image = Resources.red_left;
-        yellowGhost.Image = Resources.yellow_right;
-        pinkGhost.Image = Resources.pink_left;
-        // Make sure all ghosts are visible
-        redGhost.Visible = true;
-        yellowGhost.Visible = true;
-        pinkGhost.Visible = true;
-        // Reset ghost states
-        _isRedGhostEaten = false;
-        _isYellowGhostEaten = false;
-        _isPinkGhostEaten = false;
+    }
+    
+    private void EatGhost(Ghost ghost)
+    {
+        _score += 50;
+        _soundManager.PlaySound("ghost_eaten");
+        
+        // Always respawn ghost in default mode regardless of current fear mode
+        ghost.X = 710;
+        ghost.Y = 420;
+        ghost.IsVisible = true;
+        ghost.ExitFearMode(); // Force to normal mode
+    }
+    
+    public void GameOver(string message)
+    {
+        // Stop all timers to prevent any ghost flickering or movement
+        _gameTimer.Stop();
+        _fearModeTimer.Stop();
+        _flickerTimer.Stop();
+        _deathTimer.Stop();
+        
+        _soundManager.StopAllSounds();
+        
+        if (message == "You Win!")
+        {
+            _uiManager.ShowGameOverScreen(message);
+            return;
+        }
+        
+        _isGameOver = true;
+        
+        // Explicitly hide all ghosts before showing death animation
+        foreach (Ghost ghost in _ghosts)
+        {
+            ghost.IsVisible = false;
+        }
+        
+        // Play death sound
+        _soundManager.PlaySound("pacman_death");
+        
+        // Show death animation
+        _deathAnimation.Image = Resources.pacman_death_anim;
+        _deathAnimation.Location = new Point(_pacman.X, _pacman.Y);
+        _deathAnimation.Size = new Size(45, 60);
+        _deathAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
+        _deathAnimation.BackColor = Color.Transparent;
+        _deathAnimation.BringToFront();
+        _deathAnimation.Visible = true;
+        
+        _deathTimer.Start();
+    }
+    
+    public void NextLevel()
+    {
+        // Implementation for multiple levels
+    }
+    
+    public void SelectMenuOption(int direction)
+    {
+        _selectedOption = (_selectedOption + direction + 2) % 2;
+        _uiManager.UpdateArrowPosition(_selectedOption);
+    }
+    
+    public void ExecuteSelectedMenuOption()
+    {
+        if (_selectedOption == 0)
+        {
+            StartGame();
+        }
+        else if (_selectedOption == 1)
+        {
+            Application.Exit();
+        }
     }
 
-    private void CheckGhostCollision(PictureBox ghost)
+    public Pacman GetPacman()
     {
-        if (pacman.Bounds.IntersectsWith(ghost.Bounds))
-        {
-            var isGhostEaten = false;
-            if (ghost == redGhost) isGhostEaten = _isRedGhostEaten;
-            else if (ghost == yellowGhost) isGhostEaten = _isYellowGhostEaten;
-            else if (ghost == pinkGhost) isGhostEaten = _isPinkGhostEaten;
+        return _pacman;
+    }
+}
 
-            if (_isFearMode && !isGhostEaten)
+public partial class Form1 : Form
+{
+    private readonly GameManager _gameManager;
+    private readonly ISoundManager _soundManager;
+    private readonly IUIManager _uiManager;
+    private readonly IInputHandler _inputHandler;
+    
+    public Form1()
+    {
+        InitializeComponent();
+        
+        FormBorderStyle = FormBorderStyle.FixedSingle;
+        MaximizeBox = false;
+        MinimumSize = new Size(1445, 1050);
+        MaximumSize = new Size(1445, 1050);
+        Text = "Pac-Man Game";
+        
+        foreach (Control control in Controls)
+        {
+            if (control is PictureBox pictureBox && (string)pictureBox.Tag == "wall")
             {
-                // Only eat ghost if it's in fear mode and hasn't been eaten yet
-                if (ghost == redGhost)
-                {
-                    EatGhost(ghost);
-                    _isRedGhostEaten = true;
-                }
-                else if (ghost == yellowGhost)
-                {
-                    EatGhost(ghost);
-                    _isYellowGhostEaten = true;
-                }
-                else if (ghost == pinkGhost)
-                {
-                    EatGhost(ghost);
-                    _isPinkGhostEaten = true;
-                }
+                pictureBox.Visible = true;
+                pictureBox.BringToFront();
             }
-            else if (isGhostEaten || !_isFearMode)
+        }
+        
+        var menuBackground = new PictureBox
+        {
+            Size = new Size(1445, 1050),
+            Location = new Point(0, 0),
+            SizeMode = PictureBoxSizeMode.StretchImage,
+            BackColor = Color.Black,
+            Image = Resources.main_menu,
+            Visible = true
+        };
+        Controls.Add(menuBackground);
+        
+        var startLabel = new Label
+        {
+            Text = "PLAY",
+            Font = new Font("Arial", 24, FontStyle.Bold),
+            ForeColor = Color.White,
+            AutoSize = true,
+            BackColor = Color.Transparent,
+            Parent = menuBackground
+        };
+        startLabel.Location = new Point(
+            (menuBackground.Width - startLabel.PreferredWidth) / 2,
+            menuBackground.Bottom - 200
+        );
+        Controls.Add(startLabel);
+        
+        var exitLabel = new Label
+        {
+            Text = "QUIT",
+            Font = new Font("Arial", 24, FontStyle.Bold),
+            ForeColor = Color.White,
+            AutoSize = true,
+            BackColor = Color.Transparent,
+            Parent = menuBackground
+        };
+        exitLabel.Location = new Point(
+            (menuBackground.Width - exitLabel.PreferredWidth) / 2,
+            menuBackground.Bottom - 100
+        );
+        Controls.Add(exitLabel);
+        
+        foreach (Control x in Controls)
+        {
+            if (x is PictureBox && x != menuBackground)
             {
-                // Ghost kills player if it's either respawned or not in fear mode
-                GameOver("You Died!");
+                x.Visible = false;
             }
         }
-    }
-
-    private void EatGhost(PictureBox ghost)
-    {
-        _score += 50; // Points for eating a ghost
-        ghost.Visible = false;
-        // Воспроизведение звука поедания призрака
-        PlaySound("ghost_eaten");
-        RespawnGhost(ghost);
-    }
-
-    private void RespawnGhost(PictureBox ghost)
-    {
-        ghost.Visible = true;
-        ghost.Left = 710;
-        ghost.Top = 420;
-
-        // Reset ghost image and speed based on current level
-        if (ghost == redGhost)
+        
+        txtScore.Visible = false;
+        
+        var menuArrow = new PictureBox
         {
-            ghost.Image = Resources.red_left;
-            _redGhostSpeed = _score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
-        }
-        else if (ghost == yellowGhost)
+            Size = new Size(60, 60),
+            SizeMode = PictureBoxSizeMode.StretchImage,
+            BackColor = ColorTranslator.FromHtml("#0B0102"),
+            Image = Resources.menu_arrow,
+            Visible = true
+        };
+        Controls.Add(menuArrow);
+        menuArrow.BringToFront();
+        
+        var deathAnimation = new PictureBox
         {
-            ghost.Image = Resources.yellow_right;
-            _yellowGhostSpeed = _score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
-        }
-        else if (ghost == pinkGhost)
+            Size = new Size(40, 40),
+            SizeMode = PictureBoxSizeMode.StretchImage,
+            Visible = false
+        };
+        Controls.Add(deathAnimation);
+        
+        var gameOverLabel = new Label
         {
-            ghost.Image = Resources.pink_left;
-            _pinkGhostSpeed = _score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
-        }
-    }
-
-    private void StartMoveSound()
-    {
-        // Не воспроизводим звук движения, если играет звук начала игры
-        if (_isStartSoundPlaying) return;
-
-        if (_sounds.ContainsKey("pacman_move") && _isMoveSoundPlaying == false && _isGameOver == false)
+            Text = "GAME OVER",
+            Font = new Font("Arial", 48, FontStyle.Bold),
+            ForeColor = Color.Red,
+            AutoSize = true,
+            Visible = false
+        };
+        Controls.Add(gameOverLabel);
+        
+        var restartLabel = new Label
         {
-            _isMoveSoundPlaying = true;
-            var player = _sounds["pacman_move"];
-            player.Position = TimeSpan.Zero;
-            player.Play();
-            player.MediaEnded += (_, _) =>
-            {
-                if (_isMoveSoundPlaying && _isGameOver == false)
-                {
-                    player.Position = TimeSpan.Zero;
-                    player.Play();
-                }
-            };
-        }
+            Text = "Restart - R",
+            Font = new Font("Arial", 24, FontStyle.Bold),
+            ForeColor = Color.Red,
+            AutoSize = true,
+            Visible = false
+        };
+        Controls.Add(restartLabel);
+        
+        var fearModeTimer = new Timer();
+        var flickerTimer = new Timer();
+        var deathTimer = new Timer();
+        
+        _soundManager = new SoundManager();
+        _soundManager.InitializeSounds();
+        
+        _uiManager = new UIManager(this, menuBackground, menuArrow, gameOverLabel, restartLabel, txtScore, deathAnimation);
+        
+        var collisionHandler = new CollisionHandler(_soundManager);
+        
+        _gameManager = new GameManager(
+            this,
+            _soundManager,
+            _uiManager,
+            collisionHandler,
+            gameTimer,
+            fearModeTimer,
+            flickerTimer,
+            deathTimer,
+            deathAnimation
+        );
+        
+        _inputHandler = new InputHandler(_gameManager, _gameManager.GetPacman());
+        
+        _uiManager.UpdateArrowPosition(0);
+        
+        KeyDown += Form1_KeyDown;
+        KeyUp += Form1_KeyUp;
     }
-
-    private void StopMoveSound()
+    
+    private void Form1_KeyDown(object sender, KeyEventArgs e)
     {
-        if (_sounds.ContainsKey("pacman_move") && _isMoveSoundPlaying)
-        {
-            _isMoveSoundPlaying = false;
-            _sounds["pacman_move"].Stop();
-        }
+        _inputHandler.HandleKeyDown(e);
     }
-
-    private void StartGhostSound()
+    
+    private void Form1_KeyUp(object sender, KeyEventArgs e)
     {
-        // Не воспроизводим звук призраков, если играет звук начала игры
-        if (_isStartSoundPlaying) return;
-
-        if (_sounds.ContainsKey("ghost_move") && _isMoveSoundPlaying == false && _isGameOver == false)
-        {
-            _isGhostSoundPlaying = true;
-            var player = _sounds["ghost_move"];
-            player.Position = TimeSpan.Zero;
-            player.Play();
-            player.MediaEnded += (_, _) =>
-            {
-                if (_isMoveSoundPlaying && _isGameOver == false)
-                {
-                    player.Position = TimeSpan.Zero;
-                    player.Play();
-                }
-            };
-        }
-    }
-
-    private void StopGhostSound()
-    {
-        if (_sounds.ContainsKey("ghost_move") && _isGhostSoundPlaying)
-        {
-            _isGhostSoundPlaying = false;
-            _sounds["ghost_move"].Stop();
-        }
-    }
-
-    private void label1_Click(object sender, EventArgs e)
-    {
-    }
-
-    private void Form1_Load(object sender, EventArgs e)
-    {
-    }
-
-    private void pictureBox5_Click(object sender, EventArgs e)
-    {
-    }
-
-    private void pictureBox8_Click(object sender, EventArgs e)
-    {
+        _inputHandler.HandleKeyUp(e);
     }
 }
