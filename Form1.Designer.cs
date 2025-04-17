@@ -2490,8 +2490,8 @@
             Controls.Add(pictureBox175);
             Text = "Form1";
             Load += Form1_Load;
-            KeyDown += keyisdown;
-            KeyUp += keyisup;
+            KeyDown += Keyisdown;
+            KeyUp += Keyisup;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();

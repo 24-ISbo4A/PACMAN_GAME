@@ -12,7 +12,8 @@
 - Перейди в папку `Release` или `bin/Debug` после сборки проекта
 - Запусти файл `PACMAN_GAME.exe`
 
-> ⚠️ Убедись, что у тебя установлен [.NET Framework 4.x](https://dotnet.microsoft.com/en-us/download/dotnet-framework) или [Runtime .NET 6/7](https://dotnet.microsoft.com/en-us/download)
+> ⚠️ Убедись, что у тебя установлен [.NET Framework 4.x](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
+> или [Runtime .NET 6/7](https://dotnet.microsoft.com/en-us/download)
 
 ---
 
@@ -62,7 +63,8 @@ git checkout -b dev origin/dev
 
 ### 🔁 Создание Pull Request
 
-После пуша в верхней части окна появится кнопка **"Create Pull Request"** — нажми и откроется браузер с формой PR. Выбери, чтобы влить изменения в ветку `dev`.
+После пуша в верхней части окна появится кнопка **"Create Pull Request"** — нажми и откроется браузер с формой PR.
+Выбери, чтобы влить изменения в ветку `dev`.
 
 ---
 
@@ -75,7 +77,9 @@ git checkout -b dev origin/dev
 git checkout dev
 git pull
 git checkout -b feature/название_фичи
+
 # внёс изменения
+
 git add .
 git commit -m "Добавил фичу: ..."
 git push origin feature/название_фичи
