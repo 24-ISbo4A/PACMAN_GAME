@@ -8,6 +8,11 @@ using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Size = System.Drawing.Size;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace PACMAN_GAME;
 
@@ -789,15 +794,10 @@ public class GameManager : IGameManager
     private readonly Form _parent;
     private readonly GameEntityFactory _entityFactory;
     
-    private int _score;
     private int _selectedOption;
-    private bool _isGameOver;
-    private bool _isFearMode;
-    private DateTime _fearModeStartTime;
     private const int FearModeDuration = 10000;
     
-    public bool IsInMenu { get; private set; } = true;
-    public bool IsGameOver => _isGameOver;
+    private GameStateManager GameState => GameStateManager.Instance;
     
     private Pacman _pacman;
     private List<Ghost> _ghosts;
@@ -869,9 +869,9 @@ public class GameManager : IGameManager
         _fearModeTimer.Interval = 100;
         _fearModeTimer.Tick += (s, e) =>
         {
-            if (_isFearMode)
+            if (GameState.IsFearMode)
             {
-                var elapsed = DateTime.Now - _fearModeStartTime;
+                var elapsed = DateTime.Now - GameState.FearModeStartTime;
                 if (elapsed.TotalMilliseconds >= FearModeDuration)
                 {
                     EndFearMode();
@@ -882,9 +882,9 @@ public class GameManager : IGameManager
         _flickerTimer.Interval = 200;
         _flickerTimer.Tick += (_, _) =>
         {
-            if (_isFearMode)
+            if (GameState.IsFearMode)
             {
-                var elapsed = DateTime.Now - _fearModeStartTime;
+                var elapsed = DateTime.Now - GameState.FearModeStartTime;
                 if (elapsed.TotalMilliseconds >= FearModeDuration - 3000)
                 {
                     foreach (Ghost ghost in _ghosts)
@@ -908,145 +908,38 @@ public class GameManager : IGameManager
     
     public void StartGame()
     {
-        IsInMenu = false;
+        GameState.IsInMenu = false;
         _uiManager.HideMainMenu();
         _uiManager.UpdateScore(0);
         ResetGame();
-        
-        _soundManager.PlaySound("game_start");
-        try
-        {
-            var player = _soundManager._sounds_pub["game_start"];
-            player.MediaEnded += StartGameAfterSound;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("Error setting up sound handler: " + ex.Message);
-            Timer startDelay = new Timer();
-            startDelay.Interval = 4000;
-            startDelay.Tick += (s, e) => 
-            {
-                _gameTimer.Start();
-                startDelay.Stop();
-            };
-            startDelay.Start();
-        }
-    }
-    
-    private void StartGameAfterSound(object? sender, EventArgs e)
-    {
-        if (sender != null)
-        {
-            ((MediaPlayer)sender).MediaEnded -= StartGameAfterSound;
-        }
-        _gameTimer.Start();
     }
     
     public void ResetGame()
     {
         _soundManager.StopAllSounds();
-        _score = 0;
-        
-        _uiManager.HideGameOverScreen();
-        _deathAnimation.Visible = false;
-        
-        _isGameOver = false;
-        _isFearMode = false;
-        
-        foreach (Control control in _parent.Controls)
-        {
-            if (control is PictureBox pictureBox && (string)pictureBox.Tag == "wall")
-            {
-                pictureBox.Visible = true;
-                pictureBox.BringToFront();
-            }
-        }
-        
-        if (_pacman != null)
-        {
-            _pacman.X = 35;
-            _pacman.Y = 47;
-            _pacman.Direction = 1;
-            _pacman.NextDirection = 1;
-            _pacman.View.Image = Resources.right;
-            _pacman.IsVisible = !IsInMenu;
-            _pacman.View.BringToFront();
-        }
-        
-        foreach (Ghost ghost in _ghosts)
-        {
-            ghost.X = 710;
-            ghost.Y = 420;
-            ghost.Direction = new Random().Next(4);
-            ghost.ExitFearMode();
-            ghost.IsVisible = !IsInMenu;
-        }
-        
-        foreach (Coin coin in _coins)
-        {
-            coin.IsVisible = !IsInMenu;
-        }
-        
-        _fearModeTimer.Stop();
-        _flickerTimer.Stop();
-        _gameTimer.Stop();
-        _deathTimer.Stop();
-        
-        _uiManager.UpdateScore(_score);
-        
-        if (!IsInMenu)
-        {
-            try 
-            {
-                _soundManager.PlaySound("game_start");
-                
-                var player = _soundManager._sounds_pub["game_start"];
-                player.MediaEnded += StartGameAfterSound;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error starting game: " + ex.Message);
-                Timer startDelay = new Timer();
-                startDelay.Interval = 4000;
-                startDelay.Tick += (s, e) => 
-                {
-                    _gameTimer.Start();
-                    startDelay.Stop();
-                };
-                startDelay.Start();
-            }
-        }
+        GameState.ResetState();
     }
     
     public void UpdateGame()
     {
-        _uiManager.UpdateScore(_score);
+        _uiManager.UpdateScore(GameState.Score);
         
-        if (!IsInMenu && !IsGameOver)
+        if (!GameState.IsInMenu && !GameState.IsGameOver)
         {
-            _uiManager.UpdateScore(_score);
+            _uiManager.UpdateScore(GameState.Score);
         }
         
         foreach (Coin coin in _coins.Where(c => c.IsVisible && c.Value > 1))
         {
             if (_collisionHandler.CheckCollision(_pacman, coin))
             {
-                _score += coin.Value;
+                GameState.Score += coin.Value;
                 coin.IsVisible = false;
                 ActivateFearMode();
             }
         }
         
         _pacman.Move();
-        
-        foreach (Coin coin in _coins.Where(c => c.IsVisible && c.Value == 1))
-        {
-            if (_collisionHandler.CheckCollision(_pacman, coin))
-            {
-                _score += coin.Value;
-                coin.IsVisible = false;
-            }
-        }
         
         // Bring all ghosts to front before moving them so they appear on top of coins
         foreach (Ghost ghost in _ghosts)
@@ -1066,7 +959,7 @@ public class GameManager : IGameManager
                 // Ghost can kill player if either:
                 // 1. Global fear mode is not active OR
                 // 2. This specific ghost is in normal mode (has been eaten and respawned)
-                if (_isFearMode && !ghost.GetIsEaten() && ghost.GetIsFearMode())
+                if (GameState.IsFearMode && !ghost.GetIsEaten() && ghost.GetIsFearMode())
                 {
                     // Only eat the ghost if it's in fear mode and hasn't been eaten yet
                     EatGhost(ghost);
@@ -1081,7 +974,7 @@ public class GameManager : IGameManager
             }
         }
         
-        if (anyGhostMoved && !_soundManager.IsPlaying("game_start") && !_isFearMode)
+        if (anyGhostMoved && !_soundManager.IsPlaying("game_start") && !GameState.IsFearMode)
         {
             if (!_soundManager.IsPlaying("ghost_move"))
             {
@@ -1096,13 +989,13 @@ public class GameManager : IGameManager
         // Pacman should be on top of ghosts
         _pacman.View.BringToFront();
         
-        if (_score >= 258) GameOver("You Win!");
+        if (GameState.Score >= 258) GameOver("You Win!");
     }
     
     private void ActivateFearMode()
     {
-        _isFearMode = true;
-        _fearModeStartTime = DateTime.Now;
+        GameState.IsFearMode = true;
+        GameState.FearModeStartTime = DateTime.Now;
         _fearModeTimer.Start();
         _flickerTimer.Start();
         
@@ -1121,7 +1014,7 @@ public class GameManager : IGameManager
     
     private void EndFearMode()
     {
-        _isFearMode = false;
+        GameState.IsFearMode = false;
         _fearModeTimer.Stop();
         _flickerTimer.Stop();
         
@@ -1136,7 +1029,7 @@ public class GameManager : IGameManager
     
     private void EatGhost(Ghost ghost)
     {
-        _score += 50;
+        GameState.Score += 50;
         _soundManager.PlaySound("ghost_eaten");
         
         // Always respawn ghost in default mode regardless of current fear mode
@@ -1162,7 +1055,7 @@ public class GameManager : IGameManager
             return;
         }
         
-        _isGameOver = true;
+        GameState.IsGameOver = true;
         
         // Explicitly hide all ghosts before showing death animation
         foreach (Ghost ghost in _ghosts)
@@ -1377,5 +1270,91 @@ public partial class Form1 : Form
     private void Form1_KeyUp(object sender, KeyEventArgs e)
     {
         _inputHandler?.HandleKeyUp(e);
+    }
+}
+
+public sealed class GameStateManager
+{
+    private static readonly Lazy<GameStateManager> _instance = 
+        new Lazy<GameStateManager>(() => new GameStateManager());
+
+    public static GameStateManager Instance => _instance.Value;
+
+    private int _score;
+    private bool _isGameOver;
+    private bool _isFearMode;
+    private bool _isInMenu;
+    private DateTime _fearModeStartTime;
+
+    public event Action<int> OnScoreChanged;
+    public event Action<string> OnGameOver;
+    public event Action OnFearModeChanged;
+
+    private GameStateManager()
+    {
+        ResetState();
+    }
+
+    public int Score
+    {
+        get => _score;
+        set
+        {
+            if (_score != value)
+            {
+                _score = value;
+                OnScoreChanged?.Invoke(_score);
+            }
+        }
+    }
+
+    public bool IsGameOver
+    {
+        get => _isGameOver;
+        set
+        {
+            if (_isGameOver != value)
+            {
+                _isGameOver = value;
+                if (_isGameOver)
+                {
+                    OnGameOver?.Invoke("Game Over");
+                }
+            }
+        }
+    }
+
+    public bool IsFearMode
+    {
+        get => _isFearMode;
+        set
+        {
+            if (_isFearMode != value)
+            {
+                _isFearMode = value;
+                OnFearModeChanged?.Invoke();
+            }
+        }
+    }
+
+    public bool IsInMenu
+    {
+        get => _isInMenu;
+        set => _isInMenu = value;
+    }
+
+    public DateTime FearModeStartTime
+    {
+        get => _fearModeStartTime;
+        set => _fearModeStartTime = value;
+    }
+
+    public void ResetState()
+    {
+        Score = 0;
+        IsGameOver = false;
+        IsFearMode = false;
+        IsInMenu = true;
+        FearModeStartTime = DateTime.MinValue;
     }
 }
