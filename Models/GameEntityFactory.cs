@@ -29,33 +29,33 @@ public class GameEntityFactory
         };
     }
 
-    private Pacman CreatePacman(PictureBox view)
+    private PACMAN_GAME.Pacman CreatePacman(PictureBox view)
     {
-        return new Pacman(view, _parent, _soundManager);
+        return new PACMAN_GAME.Pacman(view, _parent, _soundManager);
     }
 
-    private RedGhost CreateRedGhost(PictureBox view)
+    private PACMAN_GAME.RedGhost CreateRedGhost(PictureBox view)
     {
-        return new RedGhost(view, _parent);
+        return new PACMAN_GAME.RedGhost(view, _parent);
     }
 
-    private YellowGhost CreateYellowGhost(PictureBox view)
+    private PACMAN_GAME.YellowGhost CreateYellowGhost(PictureBox view)
     {
-        return new YellowGhost(view, _parent);
+        return new PACMAN_GAME.YellowGhost(view, _parent);
     }
 
-    private PinkGhost CreatePinkGhost(PictureBox view)
+    private PACMAN_GAME.PinkGhost CreatePinkGhost(PictureBox view)
     {
-        return new PinkGhost(view, _parent);
+        return new PACMAN_GAME.PinkGhost(view, _parent);
     }
 
-    private Coin CreateCoin(PictureBox view, int value)
+    private PACMAN_GAME.Coin CreateCoin(PictureBox view, int value)
     {
-        return new Coin(view, value);
+        return new PACMAN_GAME.Coin(view, value);
     }
 
-    private Wall CreateWall(PictureBox view)
+    private PACMAN_GAME.Wall CreateWall(PictureBox view)
     {
-        return new Wall(view);
+        return new PACMAN_GAME.Wall(view);
     }
 } 

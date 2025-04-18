@@ -1,6 +1,9 @@
 using System.IO;
 using System.Windows.Media;
 using PACMAN_GAME.Properties;
+using PACMAN_GAME.Managers;
+using PACMAN_GAME.Models;
+using PACMAN_GAME.Interfaces;
 using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -820,7 +823,7 @@ public class GameManager : IGameManager
         _flickerTimer = flickerTimer;
         _deathTimer = deathTimer;
         _deathAnimation = deathAnimation;
-        _entityFactory = new GameEntityFactory(parent, soundManager);
+        _entityFactory = new GameEntityFactory(_parent, _soundManager);
         
         InitializeGameEntities();
         SetupTimers();
@@ -1216,7 +1219,7 @@ public partial class Form1 : Form
     private readonly GameManager _gameManager;
     private readonly ISoundManager _soundManager;
     private readonly IUIManager _uiManager;
-    private readonly IInputHandler _inputHandler;
+    private IInputHandler _inputHandler;
     
     public Form1()
     {
@@ -1350,7 +1353,15 @@ public partial class Form1 : Form
             deathAnimation
         );
         
-        _inputHandler = new InputHandler(_gameManager, _gameManager.GetPacman());
+        // Delay the InputHandler initialization by using a small delay
+        // This ensures GameManager has fully initialized its entities
+        Timer initInputHandlerTimer = new Timer();
+        initInputHandlerTimer.Interval = 100;
+        initInputHandlerTimer.Tick += (s, e) => {
+            _inputHandler = new InputHandler(_gameManager, _gameManager.GetPacman());
+            initInputHandlerTimer.Stop();
+        };
+        initInputHandlerTimer.Start();
         
         _uiManager.UpdateArrowPosition(0);
         
@@ -1360,11 +1371,11 @@ public partial class Form1 : Form
     
     private void Form1_KeyDown(object sender, KeyEventArgs e)
     {
-        _inputHandler.HandleKeyDown(e);
+        _inputHandler?.HandleKeyDown(e);
     }
     
     private void Form1_KeyUp(object sender, KeyEventArgs e)
     {
-        _inputHandler.HandleKeyUp(e);
+        _inputHandler?.HandleKeyUp(e);
     }
 }
