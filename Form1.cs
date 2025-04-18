@@ -784,6 +784,7 @@ public class GameManager : IGameManager
     private readonly Timer _deathTimer;
     private readonly PictureBox _deathAnimation;
     private readonly Form _parent;
+    private readonly GameEntityFactory _entityFactory;
     
     private int _score;
     private int _selectedOption;
@@ -819,6 +820,7 @@ public class GameManager : IGameManager
         _flickerTimer = flickerTimer;
         _deathTimer = deathTimer;
         _deathAnimation = deathAnimation;
+        _entityFactory = new GameEntityFactory(parent, soundManager);
         
         InitializeGameEntities();
         SetupTimers();
@@ -829,7 +831,7 @@ public class GameManager : IGameManager
         PictureBox pacmanView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pacman");
         if (pacmanView != null)
         {
-            _pacman = new Pacman(pacmanView, _parent, _soundManager);
+            _pacman = (Pacman)_entityFactory.CreateGameEntity("pacman", pacmanView);
         }
         
         _ghosts = new List<Ghost>();
@@ -837,25 +839,25 @@ public class GameManager : IGameManager
         PictureBox redGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "redGhost");
         if (redGhostView != null)
         {
-            _ghosts.Add(new RedGhost(redGhostView, _parent));
+            _ghosts.Add((RedGhost)_entityFactory.CreateGameEntity("redGhost", redGhostView));
         }
         
         PictureBox yellowGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "yellowGhost");
         if (yellowGhostView != null)
         {
-            _ghosts.Add(new YellowGhost(yellowGhostView, _parent));
+            _ghosts.Add((YellowGhost)_entityFactory.CreateGameEntity("yellowGhost", yellowGhostView));
         }
         
         PictureBox pinkGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pinkGhost");
         if (pinkGhostView != null)
         {
-            _ghosts.Add(new PinkGhost(pinkGhostView, _parent));
+            _ghosts.Add((PinkGhost)_entityFactory.CreateGameEntity("pinkGhost", pinkGhostView));
         }
         
         _coins = _parent.Controls
             .OfType<PictureBox>()
             .Where(p => (string)p.Tag == "coin" || (string)p.Tag == "largeCoin")
-            .Select(p => new Coin(p, (string)p.Tag == "largeCoin" ? 20 : 1))
+            .Select(p => (Coin)_entityFactory.CreateGameEntity("coin", p, (string)p.Tag == "largeCoin" ? 20 : 1))
             .ToList();
     }
     
