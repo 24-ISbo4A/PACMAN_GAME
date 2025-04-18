@@ -1,6 +1,9 @@
 using System.IO;
 using System.Windows.Media;
 using PACMAN_GAME.Properties;
+using PACMAN_GAME.Managers;
+using PACMAN_GAME.Models;
+using PACMAN_GAME.Interfaces;
 using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -784,6 +787,7 @@ public class GameManager : IGameManager
     private readonly Timer _deathTimer;
     private readonly PictureBox _deathAnimation;
     private readonly Form _parent;
+    private readonly GameEntityFactory _entityFactory;
     
     private int _score;
     private int _selectedOption;
@@ -819,6 +823,7 @@ public class GameManager : IGameManager
         _flickerTimer = flickerTimer;
         _deathTimer = deathTimer;
         _deathAnimation = deathAnimation;
+        _entityFactory = new GameEntityFactory(_parent, _soundManager);
         
         InitializeGameEntities();
         SetupTimers();
@@ -829,7 +834,7 @@ public class GameManager : IGameManager
         PictureBox pacmanView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pacman");
         if (pacmanView != null)
         {
-            _pacman = new Pacman(pacmanView, _parent, _soundManager);
+            _pacman = (Pacman)_entityFactory.CreateGameEntity("pacman", pacmanView);
         }
         
         _ghosts = new List<Ghost>();
@@ -837,25 +842,25 @@ public class GameManager : IGameManager
         PictureBox redGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "redGhost");
         if (redGhostView != null)
         {
-            _ghosts.Add(new RedGhost(redGhostView, _parent));
+            _ghosts.Add((RedGhost)_entityFactory.CreateGameEntity("redGhost", redGhostView));
         }
         
         PictureBox yellowGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "yellowGhost");
         if (yellowGhostView != null)
         {
-            _ghosts.Add(new YellowGhost(yellowGhostView, _parent));
+            _ghosts.Add((YellowGhost)_entityFactory.CreateGameEntity("yellowGhost", yellowGhostView));
         }
         
         PictureBox pinkGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pinkGhost");
         if (pinkGhostView != null)
         {
-            _ghosts.Add(new PinkGhost(pinkGhostView, _parent));
+            _ghosts.Add((PinkGhost)_entityFactory.CreateGameEntity("pinkGhost", pinkGhostView));
         }
         
         _coins = _parent.Controls
             .OfType<PictureBox>()
             .Where(p => (string)p.Tag == "coin" || (string)p.Tag == "largeCoin")
-            .Select(p => new Coin(p, (string)p.Tag == "largeCoin" ? 20 : 1))
+            .Select(p => (Coin)_entityFactory.CreateGameEntity("coin", p, (string)p.Tag == "largeCoin" ? 20 : 1))
             .ToList();
     }
     
@@ -1214,7 +1219,7 @@ public partial class Form1 : Form
     private readonly GameManager _gameManager;
     private readonly ISoundManager _soundManager;
     private readonly IUIManager _uiManager;
-    private readonly IInputHandler _inputHandler;
+    private IInputHandler _inputHandler;
     
     public Form1()
     {
@@ -1348,7 +1353,15 @@ public partial class Form1 : Form
             deathAnimation
         );
         
-        _inputHandler = new InputHandler(_gameManager, _gameManager.GetPacman());
+        // Delay the InputHandler initialization by using a small delay
+        // This ensures GameManager has fully initialized its entities
+        Timer initInputHandlerTimer = new Timer();
+        initInputHandlerTimer.Interval = 100;
+        initInputHandlerTimer.Tick += (s, e) => {
+            _inputHandler = new InputHandler(_gameManager, _gameManager.GetPacman());
+            initInputHandlerTimer.Stop();
+        };
+        initInputHandlerTimer.Start();
         
         _uiManager.UpdateArrowPosition(0);
         
@@ -1358,11 +1371,11 @@ public partial class Form1 : Form
     
     private void Form1_KeyDown(object sender, KeyEventArgs e)
     {
-        _inputHandler.HandleKeyDown(e);
+        _inputHandler?.HandleKeyDown(e);
     }
     
     private void Form1_KeyUp(object sender, KeyEventArgs e)
     {
-        _inputHandler.HandleKeyUp(e);
+        _inputHandler?.HandleKeyUp(e);
     }
 }
