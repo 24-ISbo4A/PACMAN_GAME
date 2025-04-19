@@ -2,6 +2,15 @@ using System.Drawing;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 using System;
+using System.Media;
+
+SoundPlayer vaava = new SoundPlayer("C:\\Users\\mrana\\OneDrive\\Документы 1\\Звукозаписи\\Ваава.wav");
+SoundPlayer def_speed = new SoundPlayer("C:\\Users\\mrana\\OneDrive\\Документы 1\\Звукозаписи\\Def speed.wav");
+SoundPlayer not = new SoundPlayer("C:\\Users\\mrana\\OneDrive\\Документы 1\\Звукозаписи\\not.wav");
+SoundPlayer pilin = new SoundPlayer("C:\\Users\\mrana\\OneDrive\\Документы 1\\Звукозаписи\\pilin.wav");
+
+
+
 
 namespace PACMAN_GAME
 {
@@ -60,7 +69,7 @@ namespace PACMAN_GAME
                     }
                 }
             };
-            
+
             // Setup flicker timer
             flickerTimer.Interval = 200; // Flicker every 200ms
             flickerTimer.Tick += (s, e) =>
@@ -77,7 +86,7 @@ namespace PACMAN_GAME
                 }
             };
             flickerTimer.Start();
-            
+
             resetGame();
         }
 
@@ -240,7 +249,7 @@ namespace PACMAN_GAME
             if (pacman.Left > this.ClientSize.Width - 10) pacman.Left = -10; // левая граница
             if (pacman.Top < -10) pacman.Top = this.ClientSize.Height - 10; // верхняя граница
             if (pacman.Top > this.ClientSize.Height - 10) pacman.Top = -10; // нижняя границы
-            
+
             // Проверка сбора монет
             foreach (Control x in this.Controls)
             {
@@ -281,7 +290,7 @@ namespace PACMAN_GAME
             {
                 // В режиме страха призраки движутся медленнее
                 speed = 4; // Медленная скорость во время страха
-                
+
                 // Randomly change direction more frequently during fear mode
                 if (random.Next(50) == 0)
                 {
@@ -348,10 +357,13 @@ namespace PACMAN_GAME
             if (ghost.Top > this.ClientSize.Height - ghost.Height) ghost.Top = this.ClientSize.Height - ghost.Height;
         }
 
+
+
         private void resetGame()
         {
             txtScore.Text = "Score: 0";
             score = 0;
+            SoundPlayer begin = new SoundPlayer("C:\\Users\\mrana\\OneDrive\\Документы 1\\Звукозаписи\\Запись.wav");
 
             // Изменяем базовые скорости
             redGhostSpeed = 8; // 75% от базовой скорости (8)
@@ -364,6 +376,7 @@ namespace PACMAN_GAME
             isRedGhostEaten = false;
             isYellowGhostEaten = false;
             isPinkGhostEaten = false;
+            begin.Play();
 
             // Reset ghost images to normal state
             redGhost.Image = Properties.Resources.red_left;
@@ -449,6 +462,8 @@ namespace PACMAN_GAME
             redGhost.Image = Properties.Resources.scared;
             yellowGhost.Image = Properties.Resources.scared;
             pinkGhost.Image = Properties.Resources.scared;
+            SoundPlayer afraid = new SoundPlayer("C:\\Users\\mrana\\OneDrive\\Документы 1\\Звукозаписи\\Afraid.wav");
+            afraid.Play();
         }
 
         private void EndFearMode(object sender, EventArgs e)
@@ -518,7 +533,7 @@ namespace PACMAN_GAME
             ghost.Visible = true;
             ghost.Left = 710;
             ghost.Top = 420;
-            
+
             // Reset ghost image and speed based on current level
             if (ghost == redGhost)
             {
@@ -535,6 +550,11 @@ namespace PACMAN_GAME
                 ghost.Image = Properties.Resources.pink_left;
                 pinkGhostX = score >= 300 ? 6 : 6; // 80% или 75% от базовой скорости
             }
+        }
+
+        private void pictureBox96_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
