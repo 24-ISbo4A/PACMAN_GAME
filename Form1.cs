@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using PACMAN_GAME.Properties;
+using PACMAN_GAME.Models;
 using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -10,6 +11,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace PACMAN_GAME;
 
@@ -71,6 +75,81 @@ public interface IUIManager
     void UpdateScore(int score);
     void UpdateArrowPosition(int selectedOption);
     void HideGameOverScreen();
+}
+
+public sealed class SingletonGameManager
+{
+    private static readonly Lazy<SingletonGameManager> _instance = 
+        new Lazy<SingletonGameManager>(() => new SingletonGameManager());
+    
+    public static SingletonGameManager Instance => _instance.Value;
+    
+    private bool _isFearMode;
+    private bool _isGameOver;
+    private bool _isInMenu = true;
+    public DateTime FearModeStartTime { get; set; }
+    public int Score { get; set; }
+    
+    public event Action<int> OnScoreChanged = delegate { };
+    public event Action<string> OnGameOver = delegate { };
+    public event Action OnFearModeChanged = delegate { };
+    
+    private SingletonGameManager() 
+    {
+        OnScoreChanged = delegate { };
+        OnGameOver = delegate { };
+        OnFearModeChanged = delegate { };
+    }
+    
+    public bool IsFearMode
+    {
+        get => _isFearMode;
+        set
+        {
+            if (_isFearMode != value)
+            {
+                _isFearMode = value;
+                OnFearModeChanged?.Invoke();
+            }
+        }
+    }
+    
+    public bool IsGameOver
+    {
+        get => _isGameOver;
+        set
+        {
+            if (_isGameOver != value)
+            {
+                _isGameOver = value;
+                if (value) OnGameOver?.Invoke("Game Over");
+            }
+        }
+    }
+    
+    public bool IsInMenu
+    {
+        get => _isInMenu;
+        set
+        {
+            _isInMenu = value;
+        }
+    }
+    
+    public void AddScore(int points)
+    {
+        Score += points;
+        OnScoreChanged?.Invoke(Score);
+    }
+    
+    public void ResetState()
+    {
+        Score = 0;
+        IsGameOver = false;
+        IsFearMode = false;
+        IsInMenu = false;
+        OnScoreChanged?.Invoke(Score);
+    }
 }
 
 public class SoundManager : ISoundManager
@@ -226,39 +305,76 @@ public class Pacman : GameEntity, IMovable
         Direction = DirectionRight;
         NextDirection = DirectionRight;
         Speed = 12;
-        _parent = parent;
-        _soundManager = soundManager;
+        _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
+        UpdateImage();
     }
 
     public void SetDirection(int direction)
     {
+        if (direction < 0 || direction > 3) return;
+        
         NextDirection = direction;
-        UpdateImage();
+        
+        List<IGameEntity> walls = _parent.Controls
+            .OfType<PictureBox>()
+            .Where(p => (string)p.Tag == "wall")
+            .Select(p => new Wall(p))
+            .Cast<IGameEntity>()
+            .ToList();
+
+        int checkX = X;
+        int checkY = Y;
+
+        switch (direction)
+        {
+            case DirectionUp:
+                checkY -= Speed;
+                break;
+            case DirectionRight:
+                checkX += Speed;
+                break;
+            case DirectionDown:
+                checkY += Speed;
+                break;
+            case DirectionLeft:
+                checkX -= Speed;
+                break;
+        }
+
+        if (CanMove(checkX, checkY, walls))
+        {
+            Direction = direction;
+            UpdateImage();
+        }
     }
 
     private void UpdateImage()
     {
-        switch (NextDirection)
+        try
         {
-            case DirectionUp:
-                View.Image = Resources.up;
-                break;
-            case DirectionDown:
-                View.Image = Resources.down;
-                break;
-            case DirectionLeft:
-                View.Image = Resources.left;
-                break;
-            case DirectionRight:
-                View.Image = Resources.right;
-                break;
+            Image newImage = Direction switch
+            {
+                DirectionUp => Resources.up,
+                DirectionDown => Resources.down,
+                DirectionLeft => Resources.left,
+                DirectionRight => Resources.right,
+                _ => View.Image
+            };
+            
+            if (newImage != null)
+            {
+                View.Image = newImage;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при загрузке изображения: {ex.Message}");
         }
     }
 
     public void Move()
     {
-        CheckDirectionChange();
-        
         int newX = X;
         int newY = Y;
 
@@ -283,7 +399,6 @@ public class Pacman : GameEntity, IMovable
         if (newY < -10) newY = _parent.ClientSize.Height - 10;
         if (newY > _parent.ClientSize.Height - 10) newY = -10;
 
-        bool moved = false;
         List<IGameEntity> walls = _parent.Controls
             .OfType<PictureBox>()
             .Where(p => (string)p.Tag == "wall")
@@ -295,11 +410,6 @@ public class Pacman : GameEntity, IMovable
         {
             X = newX;
             Y = newY;
-            moved = true;
-        }
-
-        if (moved)
-        {
             if (!_soundManager.IsPlaying("pacman_move") && !_soundManager.IsPlaying("game_start"))
             {
                 _soundManager.PlaySound("pacman_move");
@@ -311,55 +421,15 @@ public class Pacman : GameEntity, IMovable
         }
     }
 
-    private void CheckDirectionChange()
-    {
-        if (NextDirection == Direction) return;
-
-        int checkX = X;
-        int checkY = Y;
-
-        switch (NextDirection)
-        {
-            case DirectionUp:
-                checkY -= 40;
-                break;
-            case DirectionRight:
-                checkX += 40;
-                break;
-            case DirectionDown:
-                checkY += 40;
-                break;
-            case DirectionLeft:
-                checkX -= 40;
-                break;
-        }
-
-        List<IGameEntity> walls = _parent.Controls
-            .OfType<PictureBox>()
-            .Where(p => (string)p.Tag == "wall")
-            .Select(p => new Wall(p))
-            .Cast<IGameEntity>()
-            .ToList();
-
-        if (CanMove(checkX, checkY, walls))
-        {
-            Direction = NextDirection;
-        }
-    }
-
     public bool CanMove(int newX, int newY, List<IGameEntity> obstacles)
     {
-        Rectangle newBounds = new Rectangle(newX, newY, Width, Height);
-        
-        foreach (IGameEntity obstacle in obstacles)
-        {
-            if (newBounds.IntersectsWith(obstacle.Bounds))
-            {
-                return false;
-            }
-        }
-        
-        return true;
+        Rectangle newBounds = new Rectangle(
+            newX + 5,
+            newY + 5,
+            Width - 10,
+            Height - 10
+        );
+        return !obstacles.Any(obstacle => newBounds.IntersectsWith(obstacle.Bounds));
     }
 }
 
@@ -369,6 +439,9 @@ public abstract class Ghost : GameEntity, IMovable
     protected const int DirectionRight = 1;
     protected const int DirectionDown = 2;
     protected const int DirectionLeft = 3;
+    
+    protected const int GHOST_SPAWN_X = 710;
+    protected const int GHOST_SPAWN_Y = 420;
     
     public int Speed { get; set; }
     public int Direction { get; set; }
@@ -473,8 +546,8 @@ public abstract class Ghost : GameEntity, IMovable
     
     public void Respawn()
     {
-        X = 710;
-        Y = 420;
+        X = GHOST_SPAWN_X;
+        Y = GHOST_SPAWN_Y;
         
         if (IsFearMode && !IsEaten)
         {
@@ -793,11 +866,17 @@ public class GameManager : IGameManager
     private int _selectedOption;
     private const int FearModeDuration = 10000;
     
-    private GameStateManager GameState => GameStateManager.Instance;
+    public bool IsInMenu => GameState.IsInMenu;
+    public bool IsGameOver => GameState.IsGameOver;
     
-    private Pacman _pacman;
-    private List<Ghost> _ghosts;
-    private List<Coin> _coins;
+    private SingletonGameManager GameState => SingletonGameManager.Instance;
+    
+    private Pacman _pacman = null!;
+    private List<Ghost> _ghosts = new();
+    private List<Coin> _coins = new();
+    
+    private const int PACMAN_SPAWN_X = 30;
+    private const int PACMAN_SPAWN_Y = 30;
     
     public GameManager(
         Form parent,
@@ -819,6 +898,22 @@ public class GameManager : IGameManager
         _flickerTimer = flickerTimer;
         _deathTimer = deathTimer;
         _deathAnimation = deathAnimation;
+        
+        GameState.OnScoreChanged += score => _uiManager.UpdateScore(score);
+        GameState.OnGameOver += message => GameOver(message);
+        GameState.OnFearModeChanged += () => 
+        {
+            if (GameState.IsFearMode)
+            {
+                _fearModeTimer.Start();
+                _flickerTimer.Start();
+            }
+            else
+            {
+                _fearModeTimer.Stop();
+                _flickerTimer.Stop();
+            }
+        };
         
         InitializeGameEntities();
         SetupTimers();
@@ -906,6 +1001,7 @@ public class GameManager : IGameManager
         GameState.IsInMenu = false;
         _uiManager.HideMainMenu();
         _uiManager.UpdateScore(0);
+        _gameTimer.Start();
         ResetGame();
     }
     
@@ -913,6 +1009,38 @@ public class GameManager : IGameManager
     {
         _soundManager.StopAllSounds();
         GameState.ResetState();
+        
+        // Восстанавливаем видимость стен
+        foreach (Control control in _parent.Controls)
+        {
+            if (control is PictureBox pictureBox && (string)pictureBox.Tag == "wall")
+            {
+                pictureBox.Visible = true;
+                pictureBox.BringToFront();
+            }
+        }
+        
+        if (_pacman != null)
+        {
+            _pacman.X = PACMAN_SPAWN_X;
+            _pacman.Y = PACMAN_SPAWN_Y;
+            _pacman.Direction = 1;
+            _pacman.IsVisible = true;
+        }
+        
+        foreach (Ghost ghost in _ghosts)
+        {
+            ghost.Respawn();
+            ghost.ExitFearMode();
+        }
+        
+        foreach (Coin coin in _coins)
+        {
+            coin.IsVisible = true;
+        }
+        
+        _uiManager.HideGameOverScreen();
+        _gameTimer.Start();
     }
     
     public void UpdateGame()
@@ -922,69 +1050,69 @@ public class GameManager : IGameManager
         if (!GameState.IsInMenu && !GameState.IsGameOver)
         {
             _uiManager.UpdateScore(GameState.Score);
-        }
-        
-        foreach (Coin coin in _coins.Where(c => c.IsVisible && c.Value > 1))
-        {
-            if (_collisionHandler.CheckCollision(_pacman, coin))
-            {
-                GameState.Score += coin.Value;
-                coin.IsVisible = false;
-                ActivateFearMode();
-            }
-        }
-        
-        _pacman.Move();
-        
-        // Bring all ghosts to front before moving them so they appear on top of coins
-        foreach (Ghost ghost in _ghosts)
-        {
-            ghost.View.BringToFront();
-        }
-        
-        bool anyGhostMoved = false;
-        foreach (Ghost ghost in _ghosts)
-        {
-            bool moved = ghost.IsVisible;
-            ghost.Move();
-            if (moved) anyGhostMoved = true;
             
-            if (_collisionHandler.CheckCollision(_pacman, ghost))
+            foreach (Coin coin in _coins.Where(c => c.IsVisible))
             {
-                // Ghost can kill player if either:
-                // 1. Global fear mode is not active OR
-                // 2. This specific ghost is in normal mode (has been eaten and respawned)
-                if (GameState.IsFearMode && !ghost.GetIsEaten() && ghost.GetIsFearMode())
+                if (_collisionHandler.CheckCollision(_pacman, coin))
                 {
-                    // Only eat the ghost if it's in fear mode and hasn't been eaten yet
-                    EatGhost(ghost);
-                }
-                else
-                {
-                    // Ghost kills player if it's in normal mode (either fear mode is off
-                    // or this ghost specifically has been reset to normal mode)
-                    GameOver("You Died!");
-                    return;
+                    GameState.Score += coin.Value;
+                    coin.IsVisible = false;
+                    if (coin.Value > 1)
+                    {
+                        ActivateFearMode();
+                    }
                 }
             }
-        }
-        
-        if (anyGhostMoved && !_soundManager.IsPlaying("game_start") && !GameState.IsFearMode)
-        {
-            if (!_soundManager.IsPlaying("ghost_move"))
+            
+            _pacman.Move();
+            
+            foreach (Ghost ghost in _ghosts)
             {
-                _soundManager.PlaySound("ghost_move");
+                ghost.View.BringToFront();
+            }
+            
+            bool anyGhostMoved = false;
+            foreach (Ghost ghost in _ghosts)
+            {
+                bool moved = ghost.IsVisible;
+                ghost.Move();
+                if (moved) anyGhostMoved = true;
+                
+                if (_collisionHandler.CheckCollision(_pacman, ghost))
+                {
+                    if (GameState.IsFearMode && !ghost.GetIsEaten() && ghost.GetIsFearMode())
+                    {
+                        EatGhost(ghost);
+                    }
+                    else if (!GameState.IsGameOver)
+                    {
+                        GameOver("You Died!");
+                        return;
+                    }
+                }
+            }
+            
+            if (anyGhostMoved && !_soundManager.IsPlaying("game_start") && !GameState.IsFearMode)
+            {
+                if (!_soundManager.IsPlaying("ghost_move"))
+                {
+                    _soundManager.PlaySound("ghost_move");
+                }
+            }
+            else
+            {
+                _soundManager.StopSound("ghost_move");
+            }
+            
+            _pacman.View.BringToFront();
+            
+            if (GameState.Score >= 258)
+            {
+                GameOver("You Win!");
+                _gameTimer.Stop();
+                return;
             }
         }
-        else
-        {
-            _soundManager.StopSound("ghost_move");
-        }
-        
-        // Pacman should be on top of ghosts
-        _pacman.View.BringToFront();
-        
-        if (GameState.Score >= 258) GameOver("You Win!");
     }
     
     private void ActivateFearMode()
@@ -1028,10 +1156,7 @@ public class GameManager : IGameManager
         _soundManager.PlaySound("ghost_eaten");
         
         // Always respawn ghost in default mode regardless of current fear mode
-        ghost.X = 710;
-        ghost.Y = 420;
-        ghost.IsVisible = true;
-        ghost.ExitFearMode(); // Force to normal mode
+        ghost.Respawn();
     }
     
     public void GameOver(string message)
@@ -1047,7 +1172,11 @@ public class GameManager : IGameManager
         if (message == "You Win!")
         {
             _uiManager.ShowGameOverScreen(message);
-            return;
+            foreach (Ghost ghost in _ghosts)
+            {
+                ghost.IsVisible = false;  // Скрываем призраков при победе
+            }
+            return;  // Не устанавливаем IsGameOver при победе
         }
         
         GameState.IsGameOver = true;
@@ -1104,20 +1233,38 @@ public class GameManager : IGameManager
 
 public partial class Form1 : Form
 {
-    private readonly GameManager _gameManager;
-    private readonly ISoundManager _soundManager;
-    private readonly IUIManager _uiManager;
-    private readonly IInputHandler _inputHandler;
+    private GameManager _gameManager = null!;
+    private ISoundManager _soundManager = null!;
+    private IUIManager _uiManager = null!;
+    private IInputHandler _inputHandler = null!;
     
     public Form1()
     {
         InitializeComponent();
+        
+        // Проверка наличия необходимых ресурсов
+        if (!ValidateResources())
+        {
+            MessageBox.Show("Не удалось загрузить необходимые ресурсы. Игра будет закрыта.");
+            Application.Exit();
+            return;
+        }
+        
+        this.KeyPreview = true;
+        this.Focus();
         
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         MinimumSize = new Size(1445, 1050);
         MaximumSize = new Size(1445, 1050);
         Text = "Pac-Man Game";
+        
+        gameTimer.Interval = 20;
+        gameTimer.Enabled = false;
+        
+        var fearModeTimer = new Timer { Interval = 100, Enabled = false };
+        var flickerTimer = new Timer { Interval = 200, Enabled = false };
+        var deathTimer = new Timer { Interval = 1200, Enabled = false };
         
         foreach (Control control in Controls)
         {
@@ -1218,10 +1365,6 @@ public partial class Form1 : Form
         };
         Controls.Add(restartLabel);
         
-        var fearModeTimer = new Timer();
-        var flickerTimer = new Timer();
-        var deathTimer = new Timer();
-        
         _soundManager = new SoundManager();
         _soundManager.InitializeSounds();
         
@@ -1245,103 +1388,63 @@ public partial class Form1 : Form
         
         _uiManager.UpdateArrowPosition(0);
         
-        KeyDown += Form1_KeyDown;
-        KeyUp += Form1_KeyUp;
+        this.KeyDown += new KeyEventHandler(Form1_KeyDown);
+        this.KeyUp += new KeyEventHandler(Form1_KeyUp);
     }
     
-    private void Form1_KeyDown(object sender, KeyEventArgs e)
+    private bool ValidateResources()
+    {
+        try
+        {
+            var requiredImages = new[]
+            {
+                Resources.up,
+                Resources.down,
+                Resources.left,
+                Resources.right,
+                Resources.red_left,
+                Resources.yellow_right,
+                Resources.pink_left,
+                Resources.scared_ghost_anim,
+                Resources.pacman_death_anim,
+                Resources.main_menu,
+                Resources.menu_arrow
+            };
+
+            return requiredImages.All(img => img != null);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
+    private void Form1_KeyDown(object? sender, KeyEventArgs e)
     {
         _inputHandler.HandleKeyDown(e);
     }
     
-    private void Form1_KeyUp(object sender, KeyEventArgs e)
+    private void Form1_KeyUp(object? sender, KeyEventArgs e)
     {
         _inputHandler.HandleKeyUp(e);
     }
-}
 
-public sealed class GameStateManager
-{
-    private static readonly Lazy<GameStateManager> _instance = 
-        new Lazy<GameStateManager>(() => new GameStateManager());
-
-    public static GameStateManager Instance => _instance.Value;
-
-    private int _score;
-    private bool _isGameOver;
-    private bool _isFearMode;
-    private bool _isInMenu;
-    private DateTime _fearModeStartTime;
-
-    public event Action<int> OnScoreChanged;
-    public event Action<string> OnGameOver;
-    public event Action OnFearModeChanged;
-
-    private GameStateManager()
+    protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        ResetState();
-    }
-
-    public int Score
-    {
-        get => _score;
-        set
+        base.OnFormClosing(e);
+        
+        gameTimer?.Stop();
+        gameTimer?.Dispose();
+        
+        _soundManager?.StopAllSounds();
+        
+        foreach (Control control in Controls)
         {
-            if (_score != value)
+            if (control is PictureBox pictureBox)
             {
-                _score = value;
-                OnScoreChanged?.Invoke(_score);
+                pictureBox.Image?.Dispose();
             }
+            control.Dispose();
         }
-    }
-
-    public bool IsGameOver
-    {
-        get => _isGameOver;
-        set
-        {
-            if (_isGameOver != value)
-            {
-                _isGameOver = value;
-                if (_isGameOver)
-                {
-                    OnGameOver?.Invoke("Game Over");
-                }
-            }
-        }
-    }
-
-    public bool IsFearMode
-    {
-        get => _isFearMode;
-        set
-        {
-            if (_isFearMode != value)
-            {
-                _isFearMode = value;
-                OnFearModeChanged?.Invoke();
-            }
-        }
-    }
-
-    public bool IsInMenu
-    {
-        get => _isInMenu;
-        set => _isInMenu = value;
-    }
-
-    public DateTime FearModeStartTime
-    {
-        get => _fearModeStartTime;
-        set => _fearModeStartTime = value;
-    }
-
-    public void ResetState()
-    {
-        Score = 0;
-        IsGameOver = false;
-        IsFearMode = false;
-        IsInMenu = true;
-        FearModeStartTime = DateTime.MinValue;
     }
 }
