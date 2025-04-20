@@ -11,73 +11,243 @@ using Size = System.Drawing.Size;
 
 namespace PACMAN_GAME;
 
+/// <summary>
+/// Интерфейс для управления звуковыми эффектами в игре
+/// </summary>
 public interface ISoundManager
 {
+    /// <summary>
+    /// Воспроизводит указанный звук
+    /// </summary>
+    /// <param name="soundName">Название звука</param>
     void PlaySound(string soundName);
+
+    /// <summary>
+    /// Останавливает указанный звук
+    /// </summary>
+    /// <param name="soundName">Название звука</param>
     void StopSound(string soundName);
+
+    /// <summary>
+    /// Останавливает все звуки
+    /// </summary>
     void StopAllSounds();
+
+    /// <summary>
+    /// Инициализирует звуковые эффекты
+    /// </summary>
     void InitializeSounds();
+
+    /// <summary>
+    /// Проверяет, воспроизводится ли указанный звук
+    /// </summary>
+    /// <param name="soundName">Название звука</param>
+    /// <returns>True, если звук воспроизводится</returns>
     bool IsPlaying(string soundName);
+
+    /// <summary>
+    /// Публичный словарь звуковых плееров
+    /// </summary>
     Dictionary<string, MediaPlayer> _sounds_pub { get; }
 }
 
+/// <summary>
+/// Базовый интерфейс для всех игровых объектов
+/// </summary>
 public interface IGameEntity
 {
+    /// <summary>
+    /// Визуальное представление объекта
+    /// </summary>
     PictureBox View { get; set; }
+
+    /// <summary>
+    /// Видимость объекта
+    /// </summary>
     bool IsVisible { get; set; }
+
+    /// <summary>
+    /// X-координата объекта
+    /// </summary>
     int X { get; set; }
+
+    /// <summary>
+    /// Y-координата объекта
+    /// </summary>
     int Y { get; set; }
+
+    /// <summary>
+    /// Ширина объекта
+    /// </summary>
     int Width { get; }
+
+    /// <summary>
+    /// Высота объекта
+    /// </summary>
     int Height { get; }
+
+    /// <summary>
+    /// Границы объекта
+    /// </summary>
     Rectangle Bounds { get; }
 }
 
+/// <summary>
+/// Интерфейс для перемещающихся объектов
+/// </summary>
 public interface IMovable : IGameEntity
 {
+    /// <summary>
+    /// Скорость движения
+    /// </summary>
     int Speed { get; set; }
+
+    /// <summary>
+    /// Направление движения
+    /// </summary>
     int Direction { get; set; }
+
+    /// <summary>
+    /// Перемещает объект
+    /// </summary>
     void Move();
+
+    /// <summary>
+    /// Проверяет возможность перемещения
+    /// </summary>
+    /// <param name="newX">Новая X-координата</param>
+    /// <param name="newY">Новая Y-координата</param>
+    /// <param name="obstacles">Список препятствий</param>
+    /// <returns>True, если перемещение возможно</returns>
     bool CanMove(int newX, int newY, List<IGameEntity> obstacles);
 }
 
+/// <summary>
+/// Интерфейс для обработки столкновений
+/// </summary>
 public interface ICollisionHandler
 {
+    /// <summary>
+    /// Проверяет столкновение между двумя объектами
+    /// </summary>
+    /// <param name="entity1">Первый объект</param>
+    /// <param name="entity2">Второй объект</param>
+    /// <returns>True, если объекты сталкиваются</returns>
     bool CheckCollision(IGameEntity entity1, IGameEntity entity2);
+
+    /// <summary>
+    /// Обрабатывает столкновение между двумя объектами
+    /// </summary>
+    /// <param name="entity1">Первый объект</param>
+    /// <param name="entity2">Второй объект</param>
     void HandleCollision(IGameEntity entity1, IGameEntity entity2);
 }
 
+/// <summary>
+/// Интерфейс для управления игровым процессом
+/// </summary>
 public interface IGameManager
 {
+    /// <summary>
+    /// Запускает игру
+    /// </summary>
     void StartGame();
+
+    /// <summary>
+    /// Сбрасывает состояние игры
+    /// </summary>
     void ResetGame();
+
+    /// <summary>
+    /// Обновляет состояние игры
+    /// </summary>
     void UpdateGame();
+
+    /// <summary>
+    /// Обрабатывает окончание игры
+    /// </summary>
+    /// <param name="message">Сообщение об окончании игры</param>
     void GameOver(string message);
+
+    /// <summary>
+    /// Переходит на следующий уровень
+    /// </summary>
     void NextLevel();
 }
 
+/// <summary>
+/// Интерфейс для обработки пользовательского ввода
+/// </summary>
 public interface IInputHandler
 {
+    /// <summary>
+    /// Обрабатывает нажатие клавиши
+    /// </summary>
+    /// <param name="e">Аргументы события нажатия клавиши</param>
     void HandleKeyDown(KeyEventArgs e);
+
+    /// <summary>
+    /// Обрабатывает отпускание клавиши
+    /// </summary>
+    /// <param name="e">Аргументы события отпускания клавиши</param>
     void HandleKeyUp(KeyEventArgs e);
 }
 
+/// <summary>
+/// Интерфейс для управления пользовательским интерфейсом
+/// </summary>
 public interface IUIManager
 {
+    /// <summary>
+    /// Показывает главное меню
+    /// </summary>
     void ShowMainMenu();
+
+    /// <summary>
+    /// Скрывает главное меню
+    /// </summary>
     void HideMainMenu();
+
+    /// <summary>
+    /// Показывает экран окончания игры
+    /// </summary>
+    /// <param name="message">Сообщение для отображения</param>
     void ShowGameOverScreen(string message);
+
+    /// <summary>
+    /// Обновляет счет
+    /// </summary>
+    /// <param name="score">Новое значение счета</param>
     void UpdateScore(int score);
+
+    /// <summary>
+    /// Обновляет позицию стрелки в меню
+    /// </summary>
+    /// <param name="selectedOption">Выбранная опция</param>
     void UpdateArrowPosition(int selectedOption);
+
+    /// <summary>
+    /// Скрывает экран окончания игры
+    /// </summary>
     void HideGameOverScreen();
 }
 
+/// <summary>
+/// Класс для управления звуковыми эффектами
+/// </summary>
 public class SoundManager : ISoundManager
 {
     private readonly Dictionary<string, MediaPlayer> _sounds = new();
     private readonly Dictionary<string, bool> _isPlaying = new();
     
+    /// <summary>
+    /// Публичный словарь звуковых плееров
+    /// </summary>
     public Dictionary<string, MediaPlayer> _sounds_pub => _sounds;
 
+    /// <summary>
+    /// Инициализирует звуковые файлы
+    /// </summary>
     public void InitializeSounds()
     {
         try
@@ -130,6 +300,10 @@ public class SoundManager : ISoundManager
         }
     }
 
+    /// <summary>
+    /// Воспроизводит указанный звук
+    /// </summary>
+    /// <param name="soundName">Название звука</param>
     public void PlaySound(string soundName)
     {
         if (_sounds.ContainsKey(soundName))
@@ -152,6 +326,10 @@ public class SoundManager : ISoundManager
         }
     }
 
+    /// <summary>
+    /// Останавливает указанный звук
+    /// </summary>
+    /// <param name="soundName">Название звука</param>
     public void StopSound(string soundName)
     {
         if (_sounds.ContainsKey(soundName) && _isPlaying[soundName])
@@ -161,6 +339,9 @@ public class SoundManager : ISoundManager
         }
     }
 
+    /// <summary>
+    /// Останавливает все звуки
+    /// </summary>
     public void StopAllSounds()
     {
         foreach (var sound in _sounds.Keys)
@@ -169,56 +350,116 @@ public class SoundManager : ISoundManager
         }
     }
 
+    /// <summary>
+    /// Проверяет, воспроизводится ли указанный звук
+    /// </summary>
+    /// <param name="soundName">Название звука</param>
+    /// <returns>True, если звук воспроизводится</returns>
     public bool IsPlaying(string soundName)
     {
         return _isPlaying.ContainsKey(soundName) && _isPlaying[soundName];
     }
 }
 
+/// <summary>
+/// Абстрактный базовый класс для игровых объектов
+/// </summary>
 public abstract class GameEntity : IGameEntity
 {
+    /// <summary>
+    /// Визуальное представление объекта
+    /// </summary>
     public PictureBox View { get; set; }
+
+    /// <summary>
+    /// Видимость объекта
+    /// </summary>
     public bool IsVisible 
     { 
         get => View.Visible; 
         set => View.Visible = value; 
     }
     
+    /// <summary>
+    /// X-координата объекта
+    /// </summary>
     public int X 
     { 
         get => View.Left; 
         set => View.Left = value; 
     }
     
+    /// <summary>
+    /// Y-координата объекта
+    /// </summary>
     public int Y 
     { 
         get => View.Top;
         set => View.Top = value; 
     }
     
+    /// <summary>
+    /// Ширина объекта
+    /// </summary>
     public int Width => View.Width;
+
+    /// <summary>
+    /// Высота объекта
+    /// </summary>
     public int Height => View.Height;
+
+    /// <summary>
+    /// Границы объекта
+    /// </summary>
     public Rectangle Bounds => View.Bounds;
 
+    /// <summary>
+    /// Конструктор базового класса
+    /// </summary>
+    /// <param name="view">Визуальное представление объекта</param>
     protected GameEntity(PictureBox view)
     {
         View = view;
     }
 }
 
+/// <summary>
+/// Класс, представляющий главного героя игры
+/// </summary>
 public class Pacman : GameEntity, IMovable
 {
+    /// <summary>
+    /// Константы направлений движения
+    /// </summary>
     private const int DirectionUp = 0;
     private const int DirectionRight = 1;
     private const int DirectionDown = 2;
     private const int DirectionLeft = 3;
 
+    /// <summary>
+    /// Скорость движения
+    /// </summary>
     public int Speed { get; set; }
+
+    /// <summary>
+    /// Текущее направление движения
+    /// </summary>
     public int Direction { get; set; }
+
+    /// <summary>
+    /// Следующее направление движения
+    /// </summary>
     public int NextDirection { get; set; }
+
     private readonly Form _parent;
     private readonly ISoundManager _soundManager;
 
+    /// <summary>
+    /// Конструктор класса Pacman
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
+    /// <param name="parent">Родительская форма</param>
+    /// <param name="soundManager">Менеджер звуков</param>
     public Pacman(PictureBox view, Form parent, ISoundManager soundManager) : base(view)
     {
         Direction = DirectionRight;
@@ -228,12 +469,19 @@ public class Pacman : GameEntity, IMovable
         _soundManager = soundManager;
     }
 
+    /// <summary>
+    /// Устанавливает направление движения
+    /// </summary>
+    /// <param name="direction">Новое направление</param>
     public void SetDirection(int direction)
     {
         NextDirection = direction;
         UpdateImage();
     }
 
+    /// <summary>
+    /// Обновляет изображение в соответствии с направлением
+    /// </summary>
     private void UpdateImage()
     {
         switch (NextDirection)
@@ -253,6 +501,9 @@ public class Pacman : GameEntity, IMovable
         }
     }
 
+    /// <summary>
+    /// Перемещает объект
+    /// </summary>
     public void Move()
     {
         CheckDirectionChange();
@@ -345,6 +596,13 @@ public class Pacman : GameEntity, IMovable
         }
     }
 
+    /// <summary>
+    /// Проверяет возможность перемещения
+    /// </summary>
+    /// <param name="newX">Новая X-координата</param>
+    /// <param name="newY">Новая Y-координата</param>
+    /// <param name="obstacles">Список препятствий</param>
+    /// <returns>True, если перемещение возможно</returns>
     public bool CanMove(int newX, int newY, List<IGameEntity> obstacles)
     {
         Rectangle newBounds = new Rectangle(newX, newY, Width, Height);
@@ -361,20 +619,54 @@ public class Pacman : GameEntity, IMovable
     }
 }
 
+/// <summary>
+/// Абстрактный класс для призраков
+/// </summary>
 public abstract class Ghost : GameEntity, IMovable
 {
+    /// <summary>
+    /// Константы направлений движения
+    /// </summary>
     protected const int DirectionUp = 0;
     protected const int DirectionRight = 1;
     protected const int DirectionDown = 2;
     protected const int DirectionLeft = 3;
     
+    /// <summary>
+    /// Скорость движения
+    /// </summary>
     public int Speed { get; set; }
+
+    /// <summary>
+    /// Направление движения
+    /// </summary>
     public int Direction { get; set; }
+
+    /// <summary>
+    /// Генератор случайных чисел
+    /// </summary>
     protected readonly Random Random = new();
+
+    /// <summary>
+    /// Родительская форма
+    /// </summary>
     protected readonly Form Parent;
+
+    /// <summary>
+    /// Флаг режима страха
+    /// </summary>
     protected bool IsFearMode;
+
+    /// <summary>
+    /// Флаг съеденности
+    /// </summary>
     protected bool IsEaten;
     
+    /// <summary>
+    /// Конструктор базового класса призрака
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
+    /// <param name="parent">Родительская форма</param>
     protected Ghost(PictureBox view, Form parent) : base(view)
     {
         Parent = parent;
@@ -382,6 +674,9 @@ public abstract class Ghost : GameEntity, IMovable
         Direction = Random.Next(4);
     }
     
+    /// <summary>
+    /// Перемещает призрака
+    /// </summary>
     public virtual void Move()
     {
         int actualSpeed = IsFearMode ? 4 : Speed;
@@ -423,6 +718,13 @@ public abstract class Ghost : GameEntity, IMovable
         }
     }
     
+    /// <summary>
+    /// Проверяет возможность перемещения
+    /// </summary>
+    /// <param name="newX">Новая X-координата</param>
+    /// <param name="newY">Новая Y-координата</param>
+    /// <param name="obstacles">Список препятствий</param>
+    /// <returns>True, если перемещение возможно</returns>
     public bool CanMove(int newX, int newY, List<IGameEntity> obstacles)
     {
         Rectangle newBounds = new Rectangle(newX, newY, Width, Height);
@@ -438,12 +740,18 @@ public abstract class Ghost : GameEntity, IMovable
         return true;
     }
     
+    /// <summary>
+    /// Активирует режим страха
+    /// </summary>
     public void EnterFearMode()
     {
         IsFearMode = true;
         View.Image = Resources.scared_ghost_anim;
     }
     
+    /// <summary>
+    /// Деактивирует режим страха
+    /// </summary>
     public void ExitFearMode()
     {
         IsFearMode = false;
@@ -451,24 +759,41 @@ public abstract class Ghost : GameEntity, IMovable
         SetNormalImage();
     }
     
+    /// <summary>
+    /// Устанавливает состояние съеденности
+    /// </summary>
     public void SetEaten()
     {
         IsEaten = true;
         ShowEatenState();
     }
     
+    /// <summary>
+    /// Возвращает состояние съеденности
+    /// </summary>
+    /// <returns>True, если призрак съеден</returns>
     public bool GetIsEaten()
     {
         return IsEaten;
     }
     
+    /// <summary>
+    /// Возвращает состояние режима страха
+    /// </summary>
+    /// <returns>True, если призрак в режиме страха</returns>
     public bool GetIsFearMode()
     {
         return IsFearMode;
     }
     
+    /// <summary>
+    /// Устанавливает нормальное изображение призрака
+    /// </summary>
     protected abstract void SetNormalImage();
     
+    /// <summary>
+    /// Возрождает призрака
+    /// </summary>
     public void Respawn()
     {
         X = 710;
@@ -490,6 +815,9 @@ public abstract class Ghost : GameEntity, IMovable
         IsVisible = true;
     }
 
+    /// <summary>
+    /// Показывает состояние съеденности
+    /// </summary>
     public void ShowEatenState()
     {
         IsEaten = true;
@@ -498,71 +826,143 @@ public abstract class Ghost : GameEntity, IMovable
     }
 }
 
+/// <summary>
+/// Класс красного призрака
+/// </summary>
 public class RedGhost : Ghost
 {
+    /// <summary>
+    /// Конструктор красного призрака
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
+    /// <param name="parent">Родительская форма</param>
     public RedGhost(PictureBox view, Form parent) : base(view, parent) { }
     
+    /// <summary>
+    /// Устанавливает нормальное изображение красного призрака
+    /// </summary>
     protected override void SetNormalImage()
     {
         View.Image = Resources.red_left;
     }
 }
 
+/// <summary>
+/// Класс желтого призрака
+/// </summary>
 public class YellowGhost : Ghost
 {
+    /// <summary>
+    /// Конструктор желтого призрака
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
+    /// <param name="parent">Родительская форма</param>
     public YellowGhost(PictureBox view, Form parent) : base(view, parent) { }
     
+    /// <summary>
+    /// Устанавливает нормальное изображение желтого призрака
+    /// </summary>
     protected override void SetNormalImage()
     {
         View.Image = Resources.yellow_right;
     }
 }
 
+/// <summary>
+/// Класс розового призрака
+/// </summary>
 public class PinkGhost : Ghost
 {
+    /// <summary>
+    /// Конструктор розового призрака
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
+    /// <param name="parent">Родительская форма</param>
     public PinkGhost(PictureBox view, Form parent) : base(view, parent) { }
     
+    /// <summary>
+    /// Устанавливает нормальное изображение розового призрака
+    /// </summary>
     protected override void SetNormalImage()
     {
         View.Image = Resources.pink_left;
     }
 }
 
+/// <summary>
+/// Класс для монеток
+/// </summary>
 public class Coin : GameEntity
 {
+    /// <summary>
+    /// Значение монетки
+    /// </summary>
     public int Value { get; }
     
+    /// <summary>
+    /// Конструктор монетки
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
+    /// <param name="value">Значение монетки</param>
     public Coin(PictureBox view, int value = 1) : base(view)
     {
         Value = value;
     }
 }
 
+/// <summary>
+/// Класс для стен
+/// </summary>
 public class Wall : GameEntity
 {
+    /// <summary>
+    /// Конструктор стены
+    /// </summary>
+    /// <param name="view">Визуальное представление</param>
     public Wall(PictureBox view) : base(view) { }
 }
 
+/// <summary>
+/// Класс для обработки столкновений
+/// </summary>
 public class CollisionHandler : ICollisionHandler
 {
     private readonly ISoundManager _soundManager;
     
+    /// <summary>
+    /// Конструктор обработчика столкновений
+    /// </summary>
+    /// <param name="soundManager">Менеджер звуков</param>
     public CollisionHandler(ISoundManager soundManager)
     {
         _soundManager = soundManager;
     }
     
+    /// <summary>
+    /// Проверяет столкновение между двумя объектами
+    /// </summary>
+    /// <param name="entity1">Первый объект</param>
+    /// <param name="entity2">Второй объект</param>
+    /// <returns>True, если объекты сталкиваются</returns>
     public bool CheckCollision(IGameEntity entity1, IGameEntity entity2)
     {
         return entity1.Bounds.IntersectsWith(entity2.Bounds);
     }
     
+    /// <summary>
+    /// Обрабатывает столкновение между двумя объектами
+    /// </summary>
+    /// <param name="entity1">Первый объект</param>
+    /// <param name="entity2">Второй объект</param>
     public void HandleCollision(IGameEntity entity1, IGameEntity entity2)
     {
         // This method is empty because the specific collision handling is done in GameManager
     }
 }
 
+/// <summary>
+/// Класс для управления пользовательским интерфейсом
+/// </summary>
 public class UIManager : IUIManager
 {
     private readonly Form _parent;
@@ -573,6 +973,16 @@ public class UIManager : IUIManager
     private readonly Label _scoreLabel;
     private readonly PictureBox _deathAnimation;
     
+    /// <summary>
+    /// Конструктор менеджера пользовательского интерфейса
+    /// </summary>
+    /// <param name="parent">Родительская форма</param>
+    /// <param name="menuBackground">Фон меню</param>
+    /// <param name="menuArrow">Стрелка меню</param>
+    /// <param name="gameOverLabel">Метка окончания игры</param>
+    /// <param name="restartLabel">Метка перезапуска</param>
+    /// <param name="scoreLabel">Метка счета</param>
+    /// <param name="deathAnimation">Анимация смерти</param>
     public UIManager(Form parent, PictureBox menuBackground, PictureBox menuArrow, 
                     Label gameOverLabel, Label restartLabel, Label scoreLabel,
                     PictureBox deathAnimation)
@@ -586,6 +996,9 @@ public class UIManager : IUIManager
         _deathAnimation = deathAnimation;
     }
     
+    /// <summary>
+    /// Показывает главное меню
+    /// </summary>
     public void ShowMainMenu()
     {
         _menuBackground.Visible = true;
@@ -607,6 +1020,9 @@ public class UIManager : IUIManager
         _scoreLabel.Visible = false;
     }
     
+    /// <summary>
+    /// Скрывает главное меню
+    /// </summary>
     public void HideMainMenu()
     {
         _menuBackground.Visible = false;
@@ -643,6 +1059,10 @@ public class UIManager : IUIManager
         _scoreLabel.BringToFront();
     }
     
+    /// <summary>
+    /// Показывает экран окончания игры
+    /// </summary>
+    /// <param name="message">Сообщение для отображения</param>
     public void ShowGameOverScreen(string message)
     {
         if (string.IsNullOrEmpty(message))
@@ -685,6 +1105,10 @@ public class UIManager : IUIManager
         _restartLabel.BringToFront();
     }
     
+    /// <summary>
+    /// Обновляет счет
+    /// </summary>
+    /// <param name="score">Новое значение счета</param>
     public void UpdateScore(int score)
     {
         _scoreLabel.Text = "Score: " + score;
@@ -692,6 +1116,10 @@ public class UIManager : IUIManager
         _scoreLabel.BringToFront();
     }
     
+    /// <summary>
+    /// Обновляет позицию стрелки в меню
+    /// </summary>
+    /// <param name="selectedOption">Выбранная опция</param>
     public void UpdateArrowPosition(int selectedOption)
     {
         int baseX = _menuBackground.Width / 2 + 250;
@@ -702,6 +1130,9 @@ public class UIManager : IUIManager
         _menuArrow.BringToFront();
     }
 
+    /// <summary>
+    /// Скрывает экран окончания игры
+    /// </summary>
     public void HideGameOverScreen()
     {
         _gameOverLabel.Visible = false;
@@ -709,17 +1140,29 @@ public class UIManager : IUIManager
     }
 }
 
+/// <summary>
+/// Класс для обработки пользовательского ввода
+/// </summary>
 public class InputHandler : IInputHandler
 {
     private readonly GameManager _gameManager;
     private readonly Pacman _pacman;
     
+    /// <summary>
+    /// Конструктор обработчика ввода
+    /// </summary>
+    /// <param name="gameManager">Менеджер игры</param>
+    /// <param name="pacman">Главный герой</param>
     public InputHandler(GameManager gameManager, Pacman pacman)
     {
         _gameManager = gameManager;
         _pacman = pacman;
     }
     
+    /// <summary>
+    /// Обрабатывает нажатие клавиши
+    /// </summary>
+    /// <param name="e">Аргументы события нажатия клавиши</param>
     public void HandleKeyDown(KeyEventArgs e)
     {
         if (e.KeyCode == Keys.Escape)
@@ -770,12 +1213,19 @@ public class InputHandler : IInputHandler
         }
     }
     
+    /// <summary>
+    /// Обрабатывает отпускание клавиши
+    /// </summary>
+    /// <param name="e">Аргументы события отпускания клавиши</param>
     public void HandleKeyUp(KeyEventArgs e)
     {
         // No specific actions on key up in this game
     }
 }
 
+/// <summary>
+/// Класс для управления игровым процессом
+/// </summary>
 public class GameManager : IGameManager
 {
     private readonly ISoundManager _soundManager;
@@ -796,13 +1246,32 @@ public class GameManager : IGameManager
     private DateTime _fearModeStartTime;
     private const int FearModeDuration = 10000;
     
+    /// <summary>
+    /// Состояние меню
+    /// </summary>
     public bool IsInMenu { get; private set; } = true;
+
+    /// <summary>
+    /// Состояние окончания игры
+    /// </summary>
     public bool IsGameOver => _isGameOver;
     
     private Pacman _pacman;
     private List<Ghost> _ghosts;
     private List<Coin> _coins;
     
+    /// <summary>
+    /// Конструктор менеджера игры
+    /// </summary>
+    /// <param name="parent">Родительская форма</param>
+    /// <param name="soundManager">Менеджер звуков</param>
+    /// <param name="uiManager">Менеджер интерфейса</param>
+    /// <param name="collisionHandler">Обработчик столкновений</param>
+    /// <param name="gameTimer">Игровой таймер</param>
+    /// <param name="fearModeTimer">Таймер режима страха</param>
+    /// <param name="flickerTimer">Таймер мерцания</param>
+    /// <param name="deathTimer">Таймер смерти</param>
+    /// <param name="deathAnimation">Анимация смерти</param>
     public GameManager(
         Form parent,
         ISoundManager soundManager, 
@@ -829,6 +1298,9 @@ public class GameManager : IGameManager
         SetupTimers();
     }
     
+    /// <summary>
+    /// Инициализирует игровые объекты
+    /// </summary>
     public void InitializeGameEntities()
     {
         PictureBox pacmanView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pacman");
@@ -864,6 +1336,9 @@ public class GameManager : IGameManager
             .ToList();
     }
     
+    /// <summary>
+    /// Настраивает таймеры
+    /// </summary>
     private void SetupTimers()
     {
         _fearModeTimer.Interval = 100;
@@ -906,6 +1381,9 @@ public class GameManager : IGameManager
         _gameTimer.Tick += (s, e) => UpdateGame();
     }
     
+    /// <summary>
+    /// Запускает игру
+    /// </summary>
     public void StartGame()
     {
         IsInMenu = false;
@@ -942,6 +1420,9 @@ public class GameManager : IGameManager
         _gameTimer.Start();
     }
     
+    /// <summary>
+    /// Сбрасывает состояние игры
+    /// </summary>
     public void ResetGame()
     {
         _soundManager.StopAllSounds();
@@ -1018,6 +1499,9 @@ public class GameManager : IGameManager
         }
     }
     
+    /// <summary>
+    /// Обновляет состояние игры
+    /// </summary>
     public void UpdateGame()
     {
         _uiManager.UpdateScore(_score);
@@ -1099,6 +1583,9 @@ public class GameManager : IGameManager
         if (_score >= 258) GameOver("You Win!");
     }
     
+    /// <summary>
+    /// Активирует режим страха
+    /// </summary>
     private void ActivateFearMode()
     {
         _isFearMode = true;
@@ -1119,6 +1606,9 @@ public class GameManager : IGameManager
         }
     }
     
+    /// <summary>
+    /// Деактивирует режим страха
+    /// </summary>
     private void EndFearMode()
     {
         _isFearMode = false;
@@ -1134,6 +1624,10 @@ public class GameManager : IGameManager
         }
     }
     
+    /// <summary>
+    /// Обрабатывает съедание призрака
+    /// </summary>
+    /// <param name="ghost">Призрак, которого съели</param>
     private void EatGhost(Ghost ghost)
     {
         _score += 50;
@@ -1146,6 +1640,10 @@ public class GameManager : IGameManager
         ghost.ExitFearMode(); // Force to normal mode
     }
     
+    /// <summary>
+    /// Обрабатывает окончание игры
+    /// </summary>
+    /// <param name="message">Сообщение об окончании игры</param>
     public void GameOver(string message)
     {
         // Stop all timers to prevent any ghost flickering or movement
@@ -1185,17 +1683,27 @@ public class GameManager : IGameManager
         _deathTimer.Start();
     }
     
+    /// <summary>
+    /// Переходит на следующий уровень
+    /// </summary>
     public void NextLevel()
     {
         // Implementation for multiple levels
     }
     
+    /// <summary>
+    /// Выбирает опцию в меню
+    /// </summary>
+    /// <param name="direction">Направление выбора</param>
     public void SelectMenuOption(int direction)
     {
         _selectedOption = (_selectedOption + direction + 2) % 2;
         _uiManager.UpdateArrowPosition(_selectedOption);
     }
     
+    /// <summary>
+    /// Выполняет выбранную опцию меню
+    /// </summary>
     public void ExecuteSelectedMenuOption()
     {
         if (_selectedOption == 0)
@@ -1208,12 +1716,19 @@ public class GameManager : IGameManager
         }
     }
 
+    /// <summary>
+    /// Возвращает объект Пакмана
+    /// </summary>
+    /// <returns>Объект Пакмана</returns>
     public Pacman GetPacman()
     {
         return _pacman;
     }
 }
 
+/// <summary>
+/// Главная форма приложения
+/// </summary>
 public partial class Form1 : Form
 {
     private readonly GameManager _gameManager;
@@ -1221,6 +1736,9 @@ public partial class Form1 : Form
     private readonly IUIManager _uiManager;
     private IInputHandler _inputHandler;
     
+    /// <summary>
+    /// Конструктор главной формы
+    /// </summary>
     public Form1()
     {
         InitializeComponent();
@@ -1369,11 +1887,21 @@ public partial class Form1 : Form
         KeyUp += Form1_KeyUp;
     }
     
+    /// <summary>
+    /// Обработчик нажатия клавиши
+    /// </summary>
+    /// <param name="sender">Источник события</param>
+    /// <param name="e">Аргументы события</param>
     private void Form1_KeyDown(object sender, KeyEventArgs e)
     {
         _inputHandler?.HandleKeyDown(e);
     }
     
+    /// <summary>
+    /// Обработчик отпускания клавиши
+    /// </summary>
+    /// <param name="sender">Источник события</param>
+    /// <param name="e">Аргументы события</param>
     private void Form1_KeyUp(object sender, KeyEventArgs e)
     {
         _inputHandler?.HandleKeyUp(e);
