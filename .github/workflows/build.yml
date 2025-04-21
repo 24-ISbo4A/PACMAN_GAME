@@ -1,4 +1,4 @@
-name: Security Scan
+name: SECURITY SCAN
 
 on:
   pull_request:
@@ -12,20 +12,28 @@ permissions:
 
 jobs:
   security_scan:
-    name: Security Code Scan
+    name: SECURITY CODE SCAN
     runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Setup .NET
+    steps:
+      - name: ЧЕКАУТ ВРАГОВ
+        uses: actions/checkout@v4
+
+      - name: УСТАНОВКА .NET 9
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 9.0.x
 
-      - name: Restore dependencies
+      - name: СЛАВЯНСКОЕ ВОССТАНОВЛЕНИЕ ЗАВИСИМОСТЕЙ
         run: dotnet restore
 
-      - name: Run Security Code Scan
-        run: |
-          dotnet tool install --global SecurityCodeScan
-          SecurityCodeScan --project "../../PACMAN_GAME.sln" --format github
+      - name: УСТАНОВКА SecurityCodeScan — С ОГНЁМ И МЕЧОМ
+        run: dotnet tool install --global SecurityCodeScan
+        shell: pwsh
+
+      - name: ДОБАВЛЕНИЕ ИНСТРУМЕНТА В PATH — ИНАЧЕ ОН СЛЕПОЙ
+        run: echo "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+        shell: pwsh
+
+      - name: ВЫЗОВ SECURITY SCAN — СУДНЫЙ ДЕНЬ
+        run: SecurityCodeScan --project "PACMAN_GAME.sln" --format github --error
