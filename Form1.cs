@@ -72,37 +72,6 @@ public interface IGameEntity
     int X { get; set; }
 
     /// <summary>
-    /// Y-координата объекта
-    /// </summary>
-    int Y { get; set; }
-
-    /// <summary>
-    /// Ширина объекта
-    /// </summary>
-    int Width { get; }
-
-    /// <summary>
-    /// Высота объекта
-    /// </summary>
-    int Height { get; }
-
-    /// <summary>
-    /// Границы объекта
-    /// </summary>
-    Rectangle Bounds { get; }
-}
-
-/// <summary>
-/// Интерфейс для перемещающихся объектов
-/// </summary>
-public interface IMovable : IGameEntity
-{
-    /// <summary>
-    /// Скорость движения
-    /// </summary>
-    int Speed { get; set; }
-
-    /// <summary>
     /// Направление движения
     /// </summary>
     int Direction { get; set; }
@@ -139,29 +108,6 @@ public interface ICollisionHandler
     /// Обрабатывает столкновение между двумя объектами
     /// </summary>
     /// <param name="entity1">Первый объект</param>
-    /// <param name="entity2">Второй объект</param>
-    void HandleCollision(IGameEntity entity1, IGameEntity entity2);
-}
-
-/// <summary>
-/// Интерфейс для управления игровым процессом
-/// </summary>
-public interface IGameManager
-{
-    /// <summary>
-    /// Запускает игру
-    /// </summary>
-    void StartGame();
-
-    /// <summary>
-    /// Сбрасывает состояние игры
-    /// </summary>
-    void ResetGame();
-
-    /// <summary>
-    /// Обновляет состояние игры
-    /// </summary>
-    void UpdateGame();
 
     /// <summary>
     /// Обрабатывает окончание игры
@@ -652,25 +598,6 @@ public abstract class Ghost : GameEntity, IMovable
     /// </summary>
     protected readonly Form Parent;
 
-    /// <summary>
-    /// Флаг режима страха
-    /// </summary>
-    protected bool IsFearMode;
-
-    /// <summary>
-    /// Флаг съеденности
-    /// </summary>
-    protected bool IsEaten;
-    
-    /// <summary>
-    /// Конструктор базового класса призрака
-    /// </summary>
-    /// <param name="view">Визуальное представление</param>
-    /// <param name="parent">Родительская форма</param>
-    protected Ghost(PictureBox view, Form parent) : base(view)
-    {
-        Parent = parent;
-        Speed = 8;
         Direction = Random.Next(4);
     }
     
@@ -694,15 +621,6 @@ public abstract class Ghost : GameEntity, IMovable
                 break;
             case DirectionDown:
                 newY += actualSpeed;
-                break;
-            case DirectionLeft:
-                newX -= actualSpeed;
-                break;
-        }
-        
-        List<IGameEntity> walls = Parent.Controls
-            .OfType<PictureBox>()
-            .Where(p => (string)p.Tag == "wall")
             .Select(p => new Wall(p))
             .Cast<IGameEntity>()
             .ToList();
@@ -769,15 +687,6 @@ public abstract class Ghost : GameEntity, IMovable
     }
     
     /// <summary>
-    /// Возвращает состояние съеденности
-    /// </summary>
-    /// <returns>True, если призрак съеден</returns>
-    public bool GetIsEaten()
-    {
-        return IsEaten;
-    }
-    
-    /// <summary>
     /// Возвращает состояние режима страха
     /// </summary>
     /// <returns>True, если призрак в режиме страха</returns>
@@ -819,18 +728,6 @@ public abstract class Ghost : GameEntity, IMovable
     /// Показывает состояние съеденности
     /// </summary>
     public void ShowEatenState()
-    {
-        IsEaten = true;
-        View.Image = null;
-        IsVisible = true;
-    }
-}
-
-/// <summary>
-/// Класс красного призрака
-/// </summary>
-public class RedGhost : Ghost
-{
     /// <summary>
     /// Конструктор красного призрака
     /// </summary>
@@ -876,15 +773,6 @@ public class PinkGhost : Ghost
     /// <summary>
     /// Конструктор розового призрака
     /// </summary>
-    /// <param name="view">Визуальное представление</param>
-    /// <param name="parent">Родительская форма</param>
-    public PinkGhost(PictureBox view, Form parent) : base(view, parent) { }
-    
-    /// <summary>
-    /// Устанавливает нормальное изображение розового призрака
-    /// </summary>
-    protected override void SetNormalImage()
-    {
         View.Image = Resources.pink_left;
     }
 }
@@ -898,18 +786,6 @@ public class Coin : GameEntity
     /// Значение монетки
     /// </summary>
     public int Value { get; }
-    
-    /// <summary>
-    /// Конструктор монетки
-    /// </summary>
-    /// <param name="view">Визуальное представление</param>
-    /// <param name="value">Значение монетки</param>
-    public Coin(PictureBox view, int value = 1) : base(view)
-    {
-        Value = value;
-    }
-}
-
 /// <summary>
 /// Класс для стен
 /// </summary>
@@ -948,20 +824,6 @@ public class CollisionHandler : ICollisionHandler
     {
         return entity1.Bounds.IntersectsWith(entity2.Bounds);
     }
-    
-    /// <summary>
-    /// Обрабатывает столкновение между двумя объектами
-    /// </summary>
-    /// <param name="entity1">Первый объект</param>
-    /// <param name="entity2">Второй объект</param>
-    public void HandleCollision(IGameEntity entity1, IGameEntity entity2)
-    {
-        // This method is empty because the specific collision handling is done in GameManager
-    }
-}
-
-/// <summary>
-/// Класс для управления пользовательским интерфейсом
 /// </summary>
 public class UIManager : IUIManager
 {
@@ -1002,17 +864,6 @@ public class UIManager : IUIManager
     public void ShowMainMenu()
     {
         _menuBackground.Visible = true;
-        _menuArrow.Visible = true;
-        
-        foreach (Control x in _parent.Controls)
-        {
-            if (x is PictureBox && x != _menuBackground && x != _menuArrow)
-            {
-                x.Visible = false;
-            }
-            
-            if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
-            {
                 x.Visible = true;
             }
         }
