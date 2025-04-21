@@ -1,13 +1,31 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
 jobs:
   security_scan:
+    name: Security Code Scan
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 8.0.x
-      - name: Install Security Code Scan
-        run: dotnet add package SecurityCodeScan.VS2019
-      - name: Run Security Scan
-        run: dotnet build /p:RunCodeAnalysis=true /warnaserror
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run Security Code Scan
+        run: |
+          dotnet tool install --global SecurityCodeScan
+          SecurityCodeScan --project "../../PACMAN_GAME.sln" --format github
