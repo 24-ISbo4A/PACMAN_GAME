@@ -1,0 +1,13 @@
+jobs:
+  security_scan:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+      - name: Install Security Code Scan
+        run: dotnet add package SecurityCodeScan.VS2019
+      - name: Run Security Scan
+        run: dotnet build /p:RunCodeAnalysis=true /warnaserror
