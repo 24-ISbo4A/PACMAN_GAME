@@ -62,24 +62,15 @@ public interface IGameEntity
     PictureBox View { get; set; }
 
     /// <summary>
-    /// Видимость объекта
+    
     /// </summary>
     bool IsVisible { get; set; }
-
-    /// <summary>
     /// X-координата объекта
     /// </summary>
     int X { get; set; }
 
     /// <summary>
     /// Y-координата объекта
-    /// </summary>
-    int Y { get; set; }
-
-    /// <summary>
-    /// Ширина объекта
-    /// </summary>
-    int Width { get; }
 
     /// <summary>
     /// Высота объекта
@@ -134,92 +125,6 @@ public interface ICollisionHandler
     /// <param name="entity2">Второй объект</param>
     /// <returns>True, если объекты сталкиваются</returns>
     bool CheckCollision(IGameEntity entity1, IGameEntity entity2);
-
-    /// <summary>
-    /// Обрабатывает столкновение между двумя объектами
-    /// </summary>
-    /// <param name="entity1">Первый объект</param>
-    /// <param name="entity2">Второй объект</param>
-    void HandleCollision(IGameEntity entity1, IGameEntity entity2);
-}
-
-/// <summary>
-/// Интерфейс для управления игровым процессом
-/// </summary>
-public interface IGameManager
-{
-    /// <summary>
-    /// Запускает игру
-    /// </summary>
-    void StartGame();
-
-    /// <summary>
-    /// Сбрасывает состояние игры
-    /// </summary>
-    void ResetGame();
-
-    /// <summary>
-    /// Обновляет состояние игры
-    /// </summary>
-    void UpdateGame();
-
-    /// <summary>
-    /// Обрабатывает окончание игры
-    /// </summary>
-    /// <param name="message">Сообщение об окончании игры</param>
-    void GameOver(string message);
-
-    /// <summary>
-    /// Переходит на следующий уровень
-    /// </summary>
-    void NextLevel();
-}
-
-/// <summary>
-/// Интерфейс для обработки пользовательского ввода
-/// </summary>
-public interface IInputHandler
-{
-    /// <summary>
-    /// Обрабатывает нажатие клавиши
-    /// </summary>
-    /// <param name="e">Аргументы события нажатия клавиши</param>
-    void HandleKeyDown(KeyEventArgs e);
-
-    /// <summary>
-    /// Обрабатывает отпускание клавиши
-    /// </summary>
-    /// <param name="e">Аргументы события отпускания клавиши</param>
-    void HandleKeyUp(KeyEventArgs e);
-}
-
-/// <summary>
-/// Интерфейс для управления пользовательским интерфейсом
-/// </summary>
-public interface IUIManager
-{
-    /// <summary>
-    /// Показывает главное меню
-    /// </summary>
-    void ShowMainMenu();
-
-    /// <summary>
-    /// Скрывает главное меню
-    /// </summary>
-    void HideMainMenu();
-
-    /// <summary>
-    /// Показывает экран окончания игры
-    /// </summary>
-    /// <param name="message">Сообщение для отображения</param>
-    void ShowGameOverScreen(string message);
-
-    /// <summary>
-    /// Обновляет счет
-    /// </summary>
-    /// <param name="score">Новое значение счета</param>
-    void UpdateScore(int score);
-
     /// <summary>
     /// Обновляет позицию стрелки в меню
     /// </summary>
@@ -258,12 +163,6 @@ public class SoundManager : ISoundManager
                 MessageBox.Show($"Папка со звуками не найдена: {resourcePath}");
                 return;
             }
-
-            var soundFiles = new Dictionary<string, string>
-            {
-                { "game_start", "game_start.mp3" },
-                { "pacman_death", "pacman_death.mp3" },
-                { "ghost_eaten", "ghost_eaten.mp3" },
                 { "pacman_move", "pacman_move.mp3" },
                 { "ghost_move", "phonepacman.mp3" },
                 { "fear_mode", "pacmanghostik.mp3" }
@@ -271,7 +170,6 @@ public class SoundManager : ISoundManager
 
             foreach (var sound in soundFiles)
             {
-                var filePath = Path.Combine(resourcePath, sound.Value);
                 if (File.Exists(filePath))
                 {
                     var player = new MediaPlayer();
@@ -1075,36 +973,18 @@ public class UIManager : IUIManager
         if (message == "You Win!")
         {
             MessageBox.Show("You Win! Press R to restart or ESC to quit.");
-            return;
-        }
-        
-        foreach (Control x in _parent.Controls)
-        {
-            if (x.Name == "pacman" || x.Name == "redGhost" || 
-                x.Name == "yellowGhost" || x.Name == "pinkGhost" ||
                 (x is PictureBox && x != _menuBackground && x != _menuArrow && x != _deathAnimation))
             {
                 x.Visible = false;
             }
         }
-        
-        _scoreLabel.Visible = false;
-        
-        _gameOverLabel.Location = new Point(
-            (_parent.ClientSize.Width - _gameOverLabel.Width) / 2,
-            (_parent.ClientSize.Height - _gameOverLabel.Height) / 2 - 100
         );
         _gameOverLabel.Visible = true;
         _gameOverLabel.BringToFront();
         
         _restartLabel.Location = new Point(
-            (_parent.ClientSize.Width - _restartLabel.Width) / 2,
-            _gameOverLabel.Bottom + 50
         );
         _restartLabel.Visible = true;
-        _restartLabel.BringToFront();
-    }
-    
     /// <summary>
     /// Обновляет счет
     /// </summary>
