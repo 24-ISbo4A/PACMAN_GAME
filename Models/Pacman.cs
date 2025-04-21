@@ -8,19 +8,46 @@ using PACMAN_GAME.Properties;
 
 namespace PACMAN_GAME.Models;
 
+/// <summary>
+/// Класс, представляющий игрового персонажа Pacman.
+/// Реализует интерфейс <see cref="IMovable"/> для поддержки движения.
+/// </summary>
 public class Pacman : GameEntity, IMovable
 {
+    /// <summary>Направление движения вверх</summary>
     private const int DirectionUp = 0;
+    /// <summary>Направление движения вправо</summary>
     private const int DirectionRight = 1;
+    /// <summary>Направление движения вниз</summary>
     private const int DirectionDown = 2;
+    /// <summary>Направление движения влево</summary>
     private const int DirectionLeft = 3;
 
+    /// <summary>
+    /// Получает или задает текущую скорость движения Pacman.
+    /// </summary>
     public int Speed { get; set; }
+
+    /// <summary>
+    /// Получает или задает текущее направление движения Pacman.
+    /// </summary>
     public int Direction { get; set; }
+
+    /// <summary>
+    /// Получает или задает следующее запрошенное направление движения Pacman.
+    /// Используется для плавной смены направления при возможности.
+    /// </summary>
     public int NextDirection { get; set; }
+
     private readonly Form _parent;
     private readonly ISoundManager _soundManager;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр класса Pacman.
+    /// </summary>
+    /// <param name="view">PictureBox для отображения Pacman.</param>
+    /// <param name="parent">Родительская форма, содержащая игровое поле.</param>
+    /// <param name="soundManager">Менеджер звуков для воспроизведения звуковых эффектов.</param>
     public Pacman(PictureBox view, Form parent, ISoundManager soundManager) : base(view)
     {
         Direction = DirectionRight;
@@ -30,12 +57,19 @@ public class Pacman : GameEntity, IMovable
         _soundManager = soundManager;
     }
 
+    /// <summary>
+    /// Устанавливает следующее направление движения Pacman.
+    /// </summary>
+    /// <param name="direction">Новое направление движения (0-вверх, 1-вправо, 2-вниз, 3-влево).</param>
     public void SetDirection(int direction)
     {
         NextDirection = direction;
         UpdateImage();
     }
 
+    /// <summary>
+    /// Обновляет изображение Pacman в соответствии с текущим направлением движения.
+    /// </summary>
     private void UpdateImage()
     {
         switch (NextDirection)
@@ -55,6 +89,10 @@ public class Pacman : GameEntity, IMovable
         }
     }
 
+    /// <summary>
+    /// Осуществляет движение Pacman в текущем направлении.
+    /// Обрабатывает столкновения со стенами и выход за границы экрана.
+    /// </summary>
     public void Move()
     {
         CheckDirectionChange();
@@ -78,7 +116,7 @@ public class Pacman : GameEntity, IMovable
                 break;
         }
 
-        // Handle wraparound
+        // Обработка выхода за границы экрана
         if (newX < -10) newX = _parent.ClientSize.Width - 10;
         if (newX > _parent.ClientSize.Width - 10) newX = -10;
         if (newY < -10) newY = _parent.ClientSize.Height - 10;
@@ -112,6 +150,9 @@ public class Pacman : GameEntity, IMovable
         }
     }
 
+    /// <summary>
+    /// Проверяет возможность смены направления движения.
+    /// </summary>
     private void CheckDirectionChange()
     {
         if (NextDirection == Direction) return;
@@ -148,6 +189,13 @@ public class Pacman : GameEntity, IMovable
         }
     }
 
+    /// <summary>
+    /// Проверяет возможность перемещения Pacman в указанные координаты.
+    /// </summary>
+    /// <param name="newX">Новая X-координата.</param>
+    /// <param name="newY">Новая Y-координата.</param>
+    /// <param name="obstacles">Список препятствий для проверки коллизий.</param>
+    /// <returns>true, если перемещение возможно; иначе false.</returns>
     public bool CanMove(int newX, int newY, List<IGameEntity> obstacles)
     {
         Rectangle newBounds = new Rectangle(newX, newY, Width, Height);
@@ -162,4 +210,4 @@ public class Pacman : GameEntity, IMovable
         
         return true;
     }
-} 
+}
