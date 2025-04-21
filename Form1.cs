@@ -236,11 +236,6 @@ public interface IUIManager
 /// Класс для управления звуковыми эффектами
 /// </summary>
 public class SoundManager : ISoundManager
-{
-    private readonly Dictionary<string, MediaPlayer> _sounds = new();
-    private readonly Dictionary<string, bool> _isPlaying = new();
-    
-    /// <summary>
     /// Публичный словарь звуковых плееров
     /// </summary>
     public Dictionary<string, MediaPlayer> _sounds_pub => _sounds;
@@ -375,9 +370,6 @@ public abstract class GameEntity : IGameEntity
     /// Видимость объекта
     /// </summary>
     public bool IsVisible 
-    { 
-        get => View.Visible; 
-        set => View.Visible = value; 
     }
     
     /// <summary>
@@ -965,42 +957,8 @@ public class CollisionHandler : ICollisionHandler
 /// </summary>
 public class UIManager : IUIManager
 {
-    private readonly Form _parent;
-    private readonly PictureBox _menuBackground;
-    private readonly PictureBox _menuArrow;
-    private readonly Label _gameOverLabel;
-    private readonly Label _restartLabel;
-    private readonly Label _scoreLabel;
-    private readonly PictureBox _deathAnimation;
-    
-    /// <summary>
-    /// Конструктор менеджера пользовательского интерфейса
-    /// </summary>
-    /// <param name="parent">Родительская форма</param>
-    /// <param name="menuBackground">Фон меню</param>
-    /// <param name="menuArrow">Стрелка меню</param>
-    /// <param name="gameOverLabel">Метка окончания игры</param>
-    /// <param name="restartLabel">Метка перезапуска</param>
-    /// <param name="scoreLabel">Метка счета</param>
-    /// <param name="deathAnimation">Анимация смерти</param>
-    public UIManager(Form parent, PictureBox menuBackground, PictureBox menuArrow, 
                     Label gameOverLabel, Label restartLabel, Label scoreLabel,
                     PictureBox deathAnimation)
-    {
-        _parent = parent;
-        _menuBackground = menuBackground;
-        _menuArrow = menuArrow;
-        _gameOverLabel = gameOverLabel;
-        _restartLabel = restartLabel;
-        _scoreLabel = scoreLabel;
-        _deathAnimation = deathAnimation;
-    }
-    
-    /// <summary>
-    /// Показывает главное меню
-    /// </summary>
-    public void ShowMainMenu()
-    {
         _menuBackground.Visible = true;
         _menuArrow.Visible = true;
         
@@ -1011,28 +969,6 @@ public class UIManager : IUIManager
                 x.Visible = false;
             }
             
-            if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
-            {
-                x.Visible = true;
-            }
-        }
-        
-        _scoreLabel.Visible = false;
-    }
-    
-    /// <summary>
-    /// Скрывает главное меню
-    /// </summary>
-    public void HideMainMenu()
-    {
-        _menuBackground.Visible = false;
-        _menuArrow.Visible = false;
-        
-        foreach (Control x in _parent.Controls)
-        {
-            if (x.Parent == _menuBackground)
-            {
-                x.Visible = false;
             }
             
             if (x is Label && (x.Text == "PLAY" || x.Text == "QUIT"))
@@ -1066,25 +1002,6 @@ public class UIManager : IUIManager
     public void ShowGameOverScreen(string message)
     {
         if (string.IsNullOrEmpty(message))
-        {
-            _gameOverLabel.Visible = false;
-            _restartLabel.Visible = false;
-            return;
-        }
-        
-        if (message == "You Win!")
-        {
-            MessageBox.Show("You Win! Press R to restart or ESC to quit.");
-            return;
-        }
-        
-        foreach (Control x in _parent.Controls)
-        {
-            if (x.Name == "pacman" || x.Name == "redGhost" || 
-                x.Name == "yellowGhost" || x.Name == "pinkGhost" ||
-                (x is PictureBox && x != _menuBackground && x != _menuArrow && x != _deathAnimation))
-            {
-                x.Visible = false;
             }
         }
         
@@ -1131,20 +1048,6 @@ public class UIManager : IUIManager
     }
 
     /// <summary>
-    /// Скрывает экран окончания игры
-    /// </summary>
-    public void HideGameOverScreen()
-    {
-        _gameOverLabel.Visible = false;
-        _restartLabel.Visible = false;
-    }
-}
-
-/// <summary>
-/// Класс для обработки пользовательского ввода
-/// </summary>
-public class InputHandler : IInputHandler
-{
     private readonly GameManager _gameManager;
     private readonly Pacman _pacman;
     
@@ -1175,23 +1078,7 @@ public class InputHandler : IInputHandler
         {
             switch (e.KeyCode)
             {
-                case Keys.Up:
-                    _gameManager.SelectMenuOption(-1);
-                    break;
-                case Keys.Down:
-                    _gameManager.SelectMenuOption(1);
-                    break;
-                case Keys.Enter:
-                    _gameManager.ExecuteSelectedMenuOption();
-                    break;
-            }
-            return;
-        }
-        
-        if (e.KeyCode == Keys.R)
-        {
-            _gameManager.ResetGame();
-            return;
+                case Keys.Up;
         }
         
         if (_gameManager.IsGameOver) return;
@@ -1204,19 +1091,6 @@ public class InputHandler : IInputHandler
             case Keys.Down:
                 _pacman.SetDirection(2);
                 break;
-            case Keys.Left:
-                _pacman.SetDirection(3);
-                break;
-            case Keys.Right:
-                _pacman.SetDirection(1);
-                break;
-        }
-    }
-    
-    /// <summary>
-    /// Обрабатывает отпускание клавиши
-    /// </summary>
-    /// <param name="e">Аргументы события отпускания клавиши</param>
     public void HandleKeyUp(KeyEventArgs e)
     {
         // No specific actions on key up in this game
@@ -1317,24 +1191,6 @@ public class GameManager : IGameManager
             _ghosts.Add((RedGhost)_entityFactory.CreateGameEntity("redGhost", redGhostView));
         }
         
-        PictureBox yellowGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "yellowGhost");
-        if (yellowGhostView != null)
-        {
-            _ghosts.Add((YellowGhost)_entityFactory.CreateGameEntity("yellowGhost", yellowGhostView));
-        }
-        
-        PictureBox pinkGhostView = _parent.Controls.OfType<PictureBox>().FirstOrDefault(p => p.Name == "pinkGhost");
-        if (pinkGhostView != null)
-        {
-            _ghosts.Add((PinkGhost)_entityFactory.CreateGameEntity("pinkGhost", pinkGhostView));
-        }
-        
-        _coins = _parent.Controls
-            .OfType<PictureBox>()
-            .Where(p => (string)p.Tag == "coin" || (string)p.Tag == "largeCoin")
-            .Select(p => (Coin)_entityFactory.CreateGameEntity("coin", p, (string)p.Tag == "largeCoin" ? 20 : 1))
-            .ToList();
-    }
     
     /// <summary>
     /// Настраивает таймеры
