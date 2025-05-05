@@ -1,5 +1,5 @@
 using System.IO;
-using System.Windows.Media;
+using System.Windows.Forms;
 using PACMAN_GAME.Properties;
 using PACMAN_GAME.Managers;
 using PACMAN_GAME.Models;
@@ -8,6 +8,7 @@ using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Size = System.Drawing.Size;
+using NAudio.Wave;
 
 namespace PACMAN_GAME;
 
@@ -44,11 +45,6 @@ public interface ISoundManager
     /// <param name="soundName">Название звука</param>
     /// <returns>True, если звук воспроизводится</returns>
     bool IsPlaying(string soundName);
-
-    /// <summary>
-    /// Публичный словарь звуковых плееров
-    /// </summary>
-    Dictionary<string, MediaPlayer> _sounds_pub { get; }
 }
 
 /// <summary>
@@ -237,14 +233,29 @@ public interface IUIManager
 /// </summary>
 public class SoundManager : ISoundManager
 {
-    private readonly Dictionary<string, MediaPlayer> _sounds = new();
+    private class SoundInstance
+    {
+        public AudioFileReader Reader { get; }
+        public WaveOutEvent Output { get; }
+        public SoundInstance(string filePath)
+        {
+            Reader = new AudioFileReader(filePath);
+            Output = new WaveOutEvent();
+            Output.Init(Reader);
+        }
+        public void Play()
+        {
+            Reader.Position = 0;
+            Output.Play();
+        }
+        public void Stop()
+        {
+            Output.Stop();
+        }
+    }
+    private readonly Dictionary<string, SoundInstance> _sounds = new();
     private readonly Dictionary<string, bool> _isPlaying = new();
     
-    /// <summary>
-    /// Публичный словарь звуковых плееров
-    /// </summary>
-    public Dictionary<string, MediaPlayer> _sounds_pub => _sounds;
-
     /// <summary>
     /// Инициализирует звуковые файлы
     /// </summary>
@@ -274,19 +285,9 @@ public class SoundManager : ISoundManager
                 var filePath = Path.Combine(resourcePath, sound.Value);
                 if (File.Exists(filePath))
                 {
-                    var player = new MediaPlayer();
-                    player.Open(new Uri(Path.GetFullPath(filePath)));
-                    _sounds[sound.Key] = player;
+                    var instance = new SoundInstance(filePath);
+                    _sounds[sound.Key] = instance;
                     _isPlaying[sound.Key] = false;
-                    
-                    player.MediaEnded += (s, e) =>
-                    {
-                        if (_isPlaying[sound.Key])
-                        {
-                            player.Position = TimeSpan.Zero;
-                            player.Play();
-                        }
-                    };
                 }
                 else
                 {
@@ -310,14 +311,9 @@ public class SoundManager : ISoundManager
         {
             try
             {
-                var player = _sounds[soundName];
-                player.Position = TimeSpan.Zero;
-                
-                _isPlaying[soundName] = soundName == "pacman_move" || 
-                                       soundName == "ghost_move" || 
-                                       soundName == "fear_mode";
-                
-                player.Play();
+                var instance = _sounds[soundName];
+                _isPlaying[soundName] = true;
+                instance.Play();
             }
             catch (Exception ex)
             {
@@ -1394,8 +1390,11 @@ public class GameManager : IGameManager
         _soundManager.PlaySound("game_start");
         try
         {
-            var player = _soundManager._sounds_pub["game_start"];
-            player.MediaEnded += StartGameAfterSound;
+            var player = _soundManager.IsPlaying("game_start");
+            if (player)
+            {
+                _gameTimer.Start();
+            }
         }
         catch (Exception ex)
         {
@@ -1409,15 +1408,6 @@ public class GameManager : IGameManager
             };
             startDelay.Start();
         }
-    }
-    
-    private void StartGameAfterSound(object? sender, EventArgs e)
-    {
-        if (sender != null)
-        {
-            ((MediaPlayer)sender).MediaEnded -= StartGameAfterSound;
-        }
-        _gameTimer.Start();
     }
     
     /// <summary>
@@ -1480,9 +1470,6 @@ public class GameManager : IGameManager
             try 
             {
                 _soundManager.PlaySound("game_start");
-                
-                var player = _soundManager._sounds_pub["game_start"];
-                player.MediaEnded += StartGameAfterSound;
             }
             catch (Exception ex)
             {

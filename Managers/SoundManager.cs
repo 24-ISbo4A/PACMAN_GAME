@@ -2,17 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using System.Windows.Media;
+using NAudio.Wave;
 using PACMAN_GAME.Interfaces;
 
 namespace PACMAN_GAME.Managers;
 
 public class SoundManager : ISoundManager
 {
-    public readonly Dictionary<string, MediaPlayer> _sounds = new();
+    private readonly Dictionary<string, IWavePlayer> _players = new();
+    private readonly Dictionary<string, AudioFileReader> _audioFiles = new();
     private readonly Dictionary<string, bool> _isPlaying = new();
-
-    public Dictionary<string, MediaPlayer> _sounds_pub => _sounds;
 
     public void InitializeSounds()
     {
@@ -40,16 +39,19 @@ public class SoundManager : ISoundManager
                 var filePath = Path.Combine(resourcePath, sound.Value);
                 if (File.Exists(filePath))
                 {
-                    var player = new MediaPlayer();
-                    player.Open(new Uri(Path.GetFullPath(filePath)));
-                    _sounds[sound.Key] = player;
+                    var audioFile = new AudioFileReader(filePath);
+                    var player = new WaveOutEvent();
+                    player.Init(audioFile);
+                    
+                    _players[sound.Key] = player;
+                    _audioFiles[sound.Key] = audioFile;
                     _isPlaying[sound.Key] = false;
                     
-                    player.MediaEnded += (s, e) =>
+                    player.PlaybackStopped += (s, e) =>
                     {
                         if (_isPlaying[sound.Key])
                         {
-                            player.Position = TimeSpan.Zero;
+                            audioFile.Position = 0;
                             player.Play();
                         }
                     };
@@ -68,12 +70,13 @@ public class SoundManager : ISoundManager
 
     public void PlaySound(string soundName)
     {
-        if (_sounds.ContainsKey(soundName))
+        if (_players.ContainsKey(soundName))
         {
             try
             {
-                var player = _sounds[soundName];
-                player.Position = TimeSpan.Zero;
+                var player = _players[soundName];
+                var audioFile = _audioFiles[soundName];
+                audioFile.Position = 0;
                 player.Play();
                 _isPlaying[soundName] = true;
             }
@@ -86,16 +89,16 @@ public class SoundManager : ISoundManager
 
     public void StopSound(string soundName)
     {
-        if (_sounds.ContainsKey(soundName) && _isPlaying[soundName])
+        if (_players.ContainsKey(soundName) && _isPlaying[soundName])
         {
             _isPlaying[soundName] = false;
-            _sounds[soundName].Stop();
+            _players[soundName].Stop();
         }
     }
 
     public void StopAllSounds()
     {
-        foreach (var sound in _sounds.Keys)
+        foreach (var sound in _players.Keys)
         {
             StopSound(sound);
         }
@@ -104,5 +107,17 @@ public class SoundManager : ISoundManager
     public bool IsPlaying(string soundName)
     {
         return _isPlaying.ContainsKey(soundName) && _isPlaying[soundName];
+    }
+
+    public void Dispose()
+    {
+        foreach (var player in _players.Values)
+        {
+            player.Dispose();
+        }
+        foreach (var audioFile in _audioFiles.Values)
+        {
+            audioFile.Dispose();
+        }
     }
 } 
