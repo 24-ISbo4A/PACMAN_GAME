@@ -9,6 +9,9 @@
         <UseWindowsForms>true</UseWindowsForms>
         <UseWPF>true</UseWPF>
         <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <StartupObject>PACMAN_GAME.Program</StartupObject>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>  
     </PropertyGroup>
 
     <ItemGroup>
@@ -39,6 +42,12 @@
     <ItemGroup>
         <Reference Include="WindowsBase"/>
         <Reference Include="PresentationCore"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+      <PackageReference Include="MSTest.TestAdapter" Version="3.9.0-preview.25167.10" />
+      <PackageReference Include="MSTest.TestFramework" Version="3.9.0-preview.25167.10" />
     </ItemGroup>
 
 </Project>
