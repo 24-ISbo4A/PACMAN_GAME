@@ -10,6 +10,9 @@
         <UseWPF>true</UseWPF>
         <ImplicitUsings>enable</ImplicitUsings>
         <StartupObject>PACMAN_GAME.Program</StartupObject>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+
     </PropertyGroup>
 
     <ItemGroup>
