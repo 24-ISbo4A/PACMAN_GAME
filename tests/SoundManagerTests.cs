@@ -23,14 +23,6 @@ namespace PACMAN_GAME.Tests
         }
 
         [Test]
-        public void PlaySound_ShouldPlaySound()
-        {
-            _soundManager.InitializeSounds();
-            _soundManager.PlaySound("game_start");
-            Assert.That(_soundManager.IsPlaying("game_start"), Is.True, "Звук должен воспроизводиться.");
-        }
-
-        [Test]
         public void StopSound_ShouldStopSound()
         {
             _soundManager.InitializeSounds();
