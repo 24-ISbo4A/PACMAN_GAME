@@ -8,6 +8,7 @@ using Color = System.Drawing.Color;
 using Timer = System.Windows.Forms.Timer;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Size = System.Drawing.Size;
+using PACMAN_GAME.tests; 
 
 namespace PACMAN_GAME;
 
@@ -1885,6 +1886,12 @@ public partial class Form1 : Form
         
         KeyDown += Form1_KeyDown;
         KeyUp += Form1_KeyUp;
+
+       
+        var tests = new ManualCollisionTests();
+        tests.TestPacmanCollidesWithGhost();
+        tests.TestPacmanCollidesWithWall();
+        tests.TestPacmanCollidesWithCoin();
     }
     
     /// <summary>
