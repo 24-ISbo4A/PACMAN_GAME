@@ -9,6 +9,10 @@
         <UseWindowsForms>true</UseWindowsForms>
         <UseWPF>true</UseWPF>
         <ImplicitUsings>enable</ImplicitUsings>
+        <StartupObject>PACMAN_GAME.Program</StartupObject>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+
         <GenerateProgramFile>false</GenerateProgramFile>
     </PropertyGroup>
 
@@ -40,6 +44,13 @@
     <ItemGroup>
         <Reference Include="WindowsBase" />
         <Reference Include="PresentationCore" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+        <PackageReference Include="NUnit" Version="4.0.1" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
     </ItemGroup>
 
     <ItemGroup>
