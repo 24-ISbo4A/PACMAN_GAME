@@ -1724,6 +1724,17 @@ public class GameManager : IGameManager
     {
         return _pacman;
     }
+
+    public void AddScore(int points)
+    {
+        _score += points;
+        _uiManager.UpdateScore(_score);
+    }
+
+    public int GetScore()
+    {
+        return _score;
+    }
 }
 
 /// <summary>
