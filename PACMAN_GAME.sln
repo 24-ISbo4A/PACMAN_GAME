@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PACMAN_GAME", "PACMAN_GAME.csproj", "{70E26CB5-738A-4A09-9EF0-FFFEF1578D26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PACMAN_GAME.Tests", "PACMAN_GAME.Tests\PACMAN_GAME.Tests.csproj", "{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,18 +27,6 @@ Global
 		{70E26CB5-738A-4A09-9EF0-FFFEF1578D26}.Release|x64.Build.0 = Release|Any CPU
 		{70E26CB5-738A-4A09-9EF0-FFFEF1578D26}.Release|x86.ActiveCfg = Release|Any CPU
 		{70E26CB5-738A-4A09-9EF0-FFFEF1578D26}.Release|x86.Build.0 = Release|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Debug|x64.Build.0 = Debug|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Debug|x86.Build.0 = Debug|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Release|x64.ActiveCfg = Release|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Release|x64.Build.0 = Release|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Release|x86.ActiveCfg = Release|Any CPU
-		{F0D7B55E-8D5E-4563-9CF3-073CA9F0A5DA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
