@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Resources\**\*.wav"/>
+        <EmbeddedResource Include="Resources\**\*.wav" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,8 +37,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="WindowsBase"/>
-        <Reference Include="PresentationCore"/>
+        <Reference Include="WindowsBase" />
+        <Reference Include="PresentationCore" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NUnit" Version="4.3.2" />
     </ItemGroup>
 
 </Project>
